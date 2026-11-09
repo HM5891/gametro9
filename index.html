@@ -4,52 +4,74 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gametro9</title>
-<meta name="description" content="Gametro9: every game, A to Z, on one network. Single player and multiplayer games with one Token card for all of them.">
+<meta name="description" content="Every game. One card. Original games for your phone on one network. Recharge your Gametro9 Card once and spend Tokens in every game.">
+<meta property="og:title" content="Gametro9 · Every game. One card.">
+<meta property="og:description" content="Original games for your phone. Board Chai Empire free in your browser.">
+<meta property="og:image" content="icons/icon-512.png">
 <meta name="theme-color" content="#f0412b">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gametro9">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&family=Overpass+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: a bright metro network. Hero with a route map where every game is a station, a "now boarding" strip, an A to Z station index, station-sign game cards, a Gametro Card recharge band, then library and footer. Dialogs handle game pages and checkout. */
+/* Layout: a metro network you can ride. Hero sells the card and boards the open game in one tap, with a live departure board.
+   Then: open-now feature, how it works, the network map (lines with trains), all stations (search + pickers), the Gametro9 Card
+   recharge, My trips, footer. Phones get a bottom tab bar. Everything is built from games.js. */
 :root{
-  --bg:#f3f5ff; --surface:#ffffff; --sunk:#e6e9fa; --ink:#14163a; --ink-2:#565a7e; --line:#d4d8f0;
-  --edge:#14163a; --grid:#e1e5f7; --sign:#14163a; --sign-ink:#f3f5ff; --sign-dim:#9aa0c8; --l-blue:#2340ff; --l-green:#13a05c; --l-sun:#ffb81c;
-  --coral:#f0412b; --coral-ink:#ffffff; --cobalt:#2340ff; --sun:#ffc929; --sun-ink:#2a1d00; --good:#0f8a52;
+  --bg:#f3f5ff; --surface:#ffffff; --sunk:#e8ebfa; --ink:#14163a; --ink-2:#565a7e; --line:#d4d8f0;
+  --edge:#14163a; --grid:#e1e5f7; --sign:#14163a; --sign-ink:#f3f5ff; --sign-dim:#9aa0c8;
+  --coral:#f0412b; --coral-ink:#ffffff; --cobalt:#2f5bff; --sun:#ffc929; --sun-ink:#2a1d00;
+  --open:#0f8a52; --board:#e89a00; --build:#8a8fb5;
   --scrim:rgba(16,18,50,.55);
   --f-display:'Bricolage Grotesque','Arial Black',system-ui,sans-serif;
   --f-body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-sign:'Overpass Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1230; --surface:#191d45; --sunk:#222759; --ink:#eef0ff; --ink-2:#a4a9d6; --line:#2e3470;
-  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5; --l-blue:#6f84ff; --l-green:#3fc07f; --l-sun:#ffc94d;
-  --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#8c9cff; --sun:#ffd44f; --sun-ink:#2a1d00; --good:#43c98a;
-  --scrim:rgba(0,0,0,.65); color-scheme:dark}}
+  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5;
+  --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#6f84ff; --sun:#ffd44f; --sun-ink:#2a1d00;
+  --open:#43c98a; --board:#ffc94d; --build:#6f76a8; --scrim:rgba(0,0,0,.65); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1230; --surface:#191d45; --sunk:#222759; --ink:#eef0ff; --ink-2:#a4a9d6; --line:#2e3470;
-  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5; --l-blue:#6f84ff; --l-green:#3fc07f; --l-sun:#ffc94d;
-  --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#8c9cff; --sun:#ffd44f; --sun-ink:#2a1d00; --good:#43c98a;
-  --scrim:rgba(0,0,0,.65); color-scheme:dark}
+  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5;
+  --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#6f84ff; --sun:#ffd44f; --sun-ink:#2a1d00;
+  --open:#43c98a; --board:#ffc94d; --build:#6f76a8; --scrim:rgba(0,0,0,.65); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+html{scroll-behavior:smooth}
 html.locked,body.locked{overflow:hidden;overscroll-behavior:none}
-html{scrollbar-gutter:stable}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 a{color:inherit}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
-.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-h1,h2,h3{font-family:var(--f-display);font-weight:800;text-wrap:balance;margin:0;letter-spacing:-.025em;line-height:1}
-.eyebrow{font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--coral)}
-
-/* sticker look: ink edge + hard offset shadow, used on the things you tap */
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:800;text-wrap:balance;margin:0;letter-spacing:-.025em;line-height:1.02}
+.eyebrow{font-family:var(--f-sign);font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--coral)}
+.mono{font-family:var(--f-sign)}
 .stk{border:2.5px solid var(--edge);box-shadow:4px 4px 0 var(--edge)}
-
-/* coin */
 .coin{width:24px;height:24px;flex:none;display:block}
 .coin.lg{width:36px;height:36px}
+.coin.xl{width:46px;height:46px}
+
+/* buttons */
+.btn{border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:14px;padding:11px 18px;font-weight:800;background:var(--coral);color:var(--coral-ink);display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;white-space:nowrap;line-height:1.15;transition:transform .1s,box-shadow .16s}
+.btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--edge)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.btn.alt{background:var(--surface);color:var(--ink)}
+.btn.dark{background:var(--ink);color:var(--bg)}
+.btn.small{padding:7px 12px;font-size:14px;border-radius:11px}
+.btn.big{padding:14px 22px;font-size:17px}
+.btn[disabled]{opacity:.55;cursor:default;transform:none;box-shadow:3px 3px 0 var(--edge)}
+.btn svg{width:18px;height:18px;flex:none}
 
 /* top bar */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:2.5px solid var(--edge)}
@@ -58,189 +80,66 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;text-wrap:balance;margin:0
 .logo svg{width:38px;height:38px;flex:none}
 .logo b{font-family:var(--f-display);font-weight:800;font-size:24px;letter-spacing:-.03em;line-height:1}
 .logo b span{color:var(--coral)}
-.links{display:flex;gap:18px;font-weight:700;font-size:15px}
+.links{display:flex;gap:20px;font-weight:700;font-size:15px}
 .links a{text-decoration:none;color:var(--ink-2)}
 .links a:hover{color:var(--ink)}
-.wallet{display:flex;align-items:center;gap:7px;background:var(--bg);border:2px solid var(--edge);border-radius:99px;padding:3px 12px 3px 4px;font-weight:800;font-variant-numeric:tabular-nums}
-.btn{border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:12px;padding:9px 16px;font-weight:800;background:var(--coral);color:var(--coral-ink);display:inline-flex;align-items:center;gap:7px;text-decoration:none;white-space:nowrap;line-height:1.15;transition:transform .1s,box-shadow .1s}
-.btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--edge)}
-.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
-.btn.alt{background:var(--surface);color:var(--ink)}
-.btn.small{padding:6px 12px;font-size:14px;border-radius:10px}
-.btn[disabled]{opacity:.5;cursor:default;transform:none}
-@media (max-width:680px){.links{display:none}.bar .wrap{gap:8px}.logo b{font-size:21px}}
+.wallet{text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:7px;background:var(--bg);border:2px solid var(--edge);border-radius:99px;padding:3px 12px 3px 4px;font-weight:800;font-variant-numeric:tabular-nums}
+@media (max-width:760px){.links{display:none}.bar .wrap{gap:8px}.logo b{font-size:21px}}
 
-/* hero: route map on map paper */
-.hero{position:relative;overflow:hidden;padding-block:38px 30px;border-bottom:2.5px solid var(--edge);
+/* hero */
+.hero{position:relative;overflow:hidden;padding-block:40px 34px;border-bottom:2.5px solid var(--edge);
   background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:32px 32px}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:30px;align-items:center;position:relative}
-.hero h1{font-size:clamp(46px,7.6vw,92px)}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center}
+.hero h1{font-size:clamp(46px,7.4vw,86px);margin-top:12px}
 .hero h1 em{font-style:normal;color:var(--coral)}
-.hero .lead{color:var(--ink-2);font-size:19px;max-width:34ch;margin:18px 0 24px;font-weight:500}
-.hero .cta{display:flex;gap:12px;flex-wrap:wrap}
-/* live board (hero): departure-board style, numbers from stats */
-.board{background:var(--sign);color:var(--sign-ink);border-radius:20px;padding:16px 16px 10px;min-width:0}
-.bhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px 16px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px dashed rgba(255,255,255,.2)}
-.livetag{display:inline-flex;align-items:center;gap:7px;font-weight:800;font-size:12.5px;letter-spacing:.14em;color:#ff7a62;text-transform:uppercase}
-.livetag::before{content:"";width:9px;height:9px;border-radius:50%;background:#ff7a62;animation:blink 1.4s steps(2) infinite}
-.big{font-family:var(--f-display);font-size:clamp(38px,5.4vw,52px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;margin-top:4px}
-.big small{font-family:var(--f-body);font-size:15px;font-weight:700;color:var(--sign-dim);margin-left:6px}
-.bstats{display:flex;gap:16px;font-size:13.5px;font-weight:700;color:var(--sign-dim)}
-.bstats b{display:block;color:var(--sign-ink);font-size:18px;font-variant-numeric:tabular-nums}
-.demo{display:inline-block;margin-left:8px;background:var(--l-sun);color:#2a1d00;border-radius:5px;padding:1px 7px;font-size:10.5px;letter-spacing:.08em;vertical-align:2px}
-.btitle{margin:12px 0 4px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--sign-dim)}
-.trow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;border:0;background:none;color:inherit;text-align:left;padding:8px 4px;border-radius:10px;font-weight:700}
-.trow:hover{background:rgba(255,255,255,.07)}
-.trow .rk{font-family:var(--f-display);font-size:20px;color:var(--l-sun);text-align:center}
-.trow .nm{min-width:0;display:flex;flex-direction:column;gap:5px}
-.trow .nm span{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.trow .code{flex:none;font-size:10.5px;font-weight:800;background:var(--lc);color:#fff;border-radius:4px;padding:0 5px;letter-spacing:.04em}
-.trow .bar{height:5px;border-radius:3px;background:var(--lc);min-width:6px}
-.trow .pl{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
-.trow .pl small{display:block;color:var(--sign-dim);font-size:11.5px;font-weight:600}
-.trow.soon{color:var(--sign-dim)}
-.trow.soon .rk{color:var(--sign-dim)}
-
-/* what's happening tiles */
-.happen{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
-.tile{background:var(--surface);border-radius:18px;padding:16px}
-.tile h3{font-size:24px;display:flex;align-items:center;gap:8px}
-.tile p.sub{margin:4px 0 8px;color:var(--ink-2);font-size:14px}
-.titem{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:8px 4px;border-radius:10px;border-top:1px solid var(--line)}
-.titem:hover{background:var(--sunk)}
-.titem .th{width:44px;height:44px;border-radius:10px;overflow:hidden;border:2px solid var(--edge)}
-.titem .th .art{height:100%;padding:0}
-.titem .th .art .t{display:none}
-.titem b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.titem small{color:var(--ink-2);font-weight:600}
-.titem .val{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
-.up{color:var(--good)}
-.livedot{display:inline-flex;align-items:center;gap:5px;color:var(--good);font-weight:800}
-.livedot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good)}
-
-/* network map: one row per line, built from games.js */
-.net{background:var(--surface);border-radius:20px;padding:14px 14px 8px;min-width:0}
-.net-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;padding:0 4px 6px;border-bottom:2px dashed var(--line)}
-.net-head b{font-family:var(--f-display);font-size:20px;white-space:nowrap}
-.net-head span{font-size:13px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.lrow{display:block;width:100%;border:0;background:none;text-align:left;padding:10px 6px 8px;border-radius:12px}
-.lrow:hover{background:var(--sunk)}
-.lrow + .lrow{border-top:1px solid var(--line);border-radius:0}
-.lname{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px}
-.lbadge{min-width:30px;height:26px;padding:0 6px;border-radius:7px;background:var(--lc);color:#fff;border:2px solid var(--edge);display:grid;place-items:center;font-family:var(--f-display);font-size:14px}
-.lname small{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:12.5px;white-space:nowrap}
-.trk{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:8px}
-.trk::before{content:"";position:absolute;left:10px;right:10px;top:7px;height:7px;border-radius:4px;background:var(--lc)}
-.st{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:12px;font-weight:700;color:var(--ink-2);padding:0 2px;min-width:0;line-height:1.15}
-.st i{width:21px;height:21px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge);display:block}
-.st.live{color:var(--ink)}
-.st.live i{background:var(--sun)}
-.st.more i{background:var(--lc);border-color:var(--edge)}
-.st.more{color:var(--ink)}
-.st span{overflow-wrap:anywhere}
-@media (max-width:820px){.hero .wrap{grid-template-columns:1fr}}
+.hero .lead{color:var(--ink-2);font-size:19px;max-width:36ch;margin:16px 0 24px;font-weight:500}
 .hero .lead b{color:var(--ink)}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.ride{position:relative;height:10px;max-width:400px;margin:26px 0 18px;border-radius:5px;background:var(--coral)}
+.ride i{position:absolute;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge)}
+.ride .tr{position:absolute;top:50%;left:0;width:44px;height:22px;margin-top:-11px;border-radius:11px;background:var(--ink);border:2.5px solid var(--edge);animation:pull 1.1s cubic-bezier(.2,.8,.2,1) .3s both}
+.ride .tr::after{content:"";position:absolute;right:6px;top:5px;width:8px;height:8px;border-radius:2px;background:var(--sun)}
+@keyframes pull{from{left:0}to{left:calc(33% - 22px)}}
+.install{display:flex;align-items:center;gap:12px;margin-top:14px;width:100%;max-width:420px;text-align:left;background:var(--sign);color:var(--sign-ink);border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:14px;padding:10px 14px;transition:transform .1s,box-shadow .16s}
+.install:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 var(--edge)}
+.install svg{width:30px;height:30px;flex:none;color:var(--sun)}
+.install b{display:block;font-size:16px}
+.install small{display:block;color:var(--sign-dim);font-weight:600;font-size:13px}
+.trust{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.trust span{display:inline-flex;align-items:center;gap:6px}
+.trust svg{width:16px;height:16px;color:var(--open)}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr}.hero{padding-block:28px 28px}}
 
-/* now boarding strip */
-.boarding{background:var(--sign);color:var(--sign-ink);border-bottom:2.5px solid var(--edge)}
-.boarding .wrap{display:flex;align-items:center;gap:14px;padding-block:10px;font-weight:700;font-size:15px;flex-wrap:wrap}
-.boarding .lamp{display:inline-flex;align-items:center;gap:8px;color:var(--l-sun);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
-.boarding .lamp::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--l-sun);animation:blink 1.4s steps(2) infinite}
-.boarding .dim{color:var(--sign-dim);font-weight:600}
-.boarding button{margin-left:auto;border:0;background:none;color:var(--sign-ink);text-decoration:underline;text-underline-offset:3px;font-weight:700;padding:0}
+/* departure board */
+.board{background:var(--sign);color:var(--sign-ink);border-radius:22px;padding:16px 16px 12px;min-width:0}
+.bhead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 4px 12px;border-bottom:1px dashed rgba(255,255,255,.2)}
+.bhead b{font-family:var(--f-display);font-size:21px;letter-spacing:-.01em}
+.bhead .clock{font-family:var(--f-sign);color:var(--sun);font-size:15px;font-variant-numeric:tabular-nums}
+.drow{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;border:0;background:none;color:inherit;text-align:left;padding:10px 4px;border-bottom:1px dashed rgba(255,255,255,.1);border-radius:8px;animation:flip .45s ease both}
+.drow:last-of-type{border-bottom:0}
+.drow:hover{background:rgba(255,255,255,.06)}
+@keyframes flip{from{opacity:0;transform:rotateX(70deg)}to{opacity:1;transform:none}}
+.drow .code{font-family:var(--f-sign);font-weight:700;font-size:13px;background:var(--lc);color:#fff;border-radius:6px;padding:2px 0;text-align:center}
+.drow .nm{font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .nm small{display:block;font-weight:600;font-size:12.5px;color:var(--sign-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .st{font-family:var(--f-sign);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:right;white-space:nowrap}
+.drow .st.open{color:#5fe0a0}
+.drow .st.open::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#5fe0a0;margin-right:7px;vertical-align:1px;animation:blink 1.4s steps(2) infinite}
+.drow .st.boarding{color:var(--sun)}
+.drow .st.construction{color:var(--sign-dim)}
+.bfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px 0;font-size:13px;font-weight:700;color:var(--sign-dim)}
+.bfoot button{border:0;background:none;color:var(--sign-ink);font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:0}
 @keyframes blink{50%{opacity:.25}}
 
-/* A to Z index */
-.az{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.az button{width:38px;height:38px;border-radius:10px;border:2px solid var(--line);background:var(--surface);font-family:var(--f-display);font-weight:800;font-size:17px;color:var(--ink-2);opacity:.45;cursor:default}
-.az button.has{opacity:1;color:var(--ink);border-color:var(--edge);cursor:pointer}
-.az button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-
 /* sections */
-section{padding-block:34px}
-.sec-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
-.sec-head h2{font-size:clamp(32px,4.6vw,50px)}
-.sec-head p{margin:6px 0 0;color:var(--ink-2)}
-.filters{display:flex;gap:6px;flex-wrap:wrap}
-.filters button{border:2px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 13px;font-weight:700;font-size:14px}
-.filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+section{padding-block:44px;scroll-margin-top:62px}
+.sec-head{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.sec-head h2{font-size:clamp(32px,4.6vw,50px);margin-top:6px}
+.sec-head p{margin:8px 0 0;color:var(--ink-2);max-width:52ch}
 
-/* search + line chips */
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
-.search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--surface);border:2.5px solid var(--edge);border-radius:12px;padding:0 12px}
-.search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-weight:600;color:var(--ink);padding:10px 0;outline:none}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chips button{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;font-weight:700;font-size:14px}
-.chips button i{width:10px;height:10px;border-radius:50%;background:var(--lc)}
-.chips button[aria-pressed="true"]{border-color:var(--edge);background:var(--ink);color:var(--bg)}
-.moreBtn{display:flex;justify-content:center;margin-top:22px}
-.frow{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-top:10px}
-.selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.sel{display:grid;gap:4px;min-width:0}
-.sel > span{font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding-left:2px}
-.dd{display:flex;align-items:center;gap:6px;width:100%;min-width:0;background:var(--surface);color:var(--ink);border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:12px;padding:10px 10px 10px 12px;font-weight:800;font-size:15px;text-align:left;transition:transform .1s,box-shadow .1s}
-.dd:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
-.dd .ddv{flex:1;min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dd .ddv > span{overflow:hidden;text-overflow:ellipsis}
-.dd .car{width:13px;height:13px;flex:none}
-.dd.on{background:var(--ink);color:var(--bg)}
-.dd .mk{flex:none}
-.mk.badge{min-width:22px;height:20px;padding:0 4px;border-radius:5px;background:var(--lc);color:#fff;border:1.5px solid var(--edge);display:inline-grid;place-items:center;font-family:var(--f-display);font-size:11.5px;line-height:1}
-.mk.ldot{width:11px;height:11px;border-radius:50%;background:var(--lvc);border:1.5px solid var(--edge)}
-.mk.ico svg{width:15px;height:15px;display:block}
-
-/* picker sheet */
-.pick .phead{background:var(--sign);color:var(--sign-ink);padding:16px 20px 14px;padding-left:max(20px,env(safe-area-inset-left,0px));border-bottom:2.5px solid var(--edge)}
-.pick .phead .eyebrow{color:var(--l-sun)}
-.pick .phead h3{font-size:28px;margin-top:4px}
-.plist{position:relative;padding:10px 14px 4px;display:grid;gap:8px}
-.plist.route{padding-left:14px}
-.popt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:2.5px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:800;font-size:16px}
-.popt:hover{border-color:var(--edge)}
-.popt .mk.badge{min-width:34px;height:30px;font-size:16px;border-radius:8px;border-width:2px}
-.popt .mk.ldot{width:16px;height:16px;border-width:2px}
-.popt .mk.ico{width:34px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center}
-.popt .mk.ico svg{width:18px;height:18px}
-.popt .lab2{flex:1;min-width:0}
-.popt small{display:block;font-weight:600;font-size:12.5px;color:var(--ink-2)}
-.popt .cnt{font-size:13px;font-weight:800;color:var(--ink-2);font-variant-numeric:tabular-nums;background:var(--sunk);border-radius:99px;padding:2px 9px}
-.popt[aria-checked="true"]{border-color:var(--edge);box-shadow:3px 3px 0 var(--edge);background:var(--ink);color:var(--bg)}
-.popt[aria-checked="true"] small{color:var(--bg);opacity:.75}
-.popt[aria-checked="true"] .cnt{background:var(--coral);color:#fff}
-.popt[aria-checked="true"] .mk.ico{background:rgba(255,255,255,.15)}
-.clearRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:14px;font-weight:700;color:var(--ink-2)}
-.clearRow button{white-space:nowrap;border:0;background:none;color:var(--coral);font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:0}
-@media (max-width:420px){.dd{font-size:13.5px;padding:9px 8px 9px 9px;gap:4px}.dd .mk.badge{min-width:18px;height:18px;font-size:10.5px}}
-.frow .lab{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);min-width:46px}
-
-/* play modes + difficulty */
-.tags{display:flex;gap:5px;flex-wrap:wrap}
-.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--sunk);color:var(--ink)}
-.tag svg{width:14px;height:14px;flex:none}
-.tag.lv{background:none;border:1.5px solid var(--lvc);color:var(--ink)}
-.lvl{--lvc:var(--ink-2)}
-.lvl-Easy{--lvc:var(--good)} .lvl-Normal{--lvc:var(--cobalt)} .lvl-Hard{--lvc:var(--coral)} .lvl-Expert{--lvc:var(--ink)}
-.howto{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;margin:14px 0 4px;padding:12px 14px;background:var(--sunk);border-radius:12px}
-.howto .k{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
-.howto .no{opacity:.4;text-decoration:line-through}
-.chips button .dotlv{width:10px;height:10px;border-radius:50%;background:var(--lvc)}
-
-/* line route (in dialog) */
-.route{position:relative;margin:14px 0 4px;padding-left:36px}
-.route::before{content:"";position:absolute;left:12px;top:16px;bottom:16px;width:8px;border-radius:4px;background:var(--lc)}
-.rstop{position:relative;display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:left;padding:9px 6px;border-radius:10px}
-.rstop:hover{background:var(--sunk)}
-.rstop::before{content:"";position:absolute;left:-31px;top:50%;width:18px;height:18px;margin-top:-12px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge)}
-.rstop.live::before{background:var(--sun)}
-.rstop .code{font-size:12.5px;font-weight:800;color:var(--ink-2);min-width:42px;font-variant-numeric:tabular-nums}
-.rstop b{flex:1;min-width:0}
-.rstop .status{flex:none}
-
-/* cover art (each game paints its own; a-auto is drawn from the line colour) */
+/* covers */
+.art{position:relative;display:flex;align-items:flex-end;padding:14px;overflow:hidden;background:var(--sunk)}
 .art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.a-auto{background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 14px,transparent 14px 28px),var(--lc)}
-.a-auto::after{content:attr(data-code);position:absolute;right:12px;top:10px;font-family:var(--f-display);font-weight:800;font-size:30px;color:rgba(255,255,255,.55)}
-.art{position:relative;display:flex;align-items:flex-end;padding:14px;overflow:hidden}
 .art .t{position:relative;z-index:1;font-family:var(--f-display);font-weight:800;color:#fff;font-size:24px;line-height:1;letter-spacing:-.02em;text-shadow:0 2px 0 rgba(0,0,0,.28);max-width:11ch}
 .a-chai{background:repeating-linear-gradient(90deg,#c42a69 0 26px,#f2a516 26px 52px) top/100% 34% no-repeat,linear-gradient(#11807c,#0b5d5a)}
 .a-chai::after{content:"";position:absolute;right:18px;bottom:14px;width:56px;height:66px;background:#b4572e;border-radius:6px 6px 22px 22px;box-shadow:inset 0 10px 0 #7a3a1e}
@@ -255,99 +154,308 @@ section{padding-block:34px}
 .a-train::after{content:"";position:absolute;left:12%;right:12%;bottom:12px;height:34px;background:#1f2933;border-radius:8px;box-shadow:inset 0 -6px 0 #0f1419}
 .a-pocket{background:conic-gradient(from 45deg at 50% 50%,#9ad35a 0 25%,#e7c35a 0 50%,#5ab7d3 0 75%,#d3795a 0);background-size:56px 56px}
 
-/* game cards */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px}
-.card{background:var(--surface);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;transition:transform .12s,box-shadow .12s}
-.card:hover{transform:translate(-2px,-2px) rotate(-.6deg);box-shadow:6px 6px 0 var(--edge)}
-.card .art{height:150px;border-bottom:2.5px solid var(--edge)}
-.stn{display:flex;align-items:center;gap:8px;background:var(--sign);color:var(--sign-ink);padding:7px 12px;font-size:12.5px;font-weight:800;letter-spacing:.08em;border-bottom:2.5px solid var(--edge)}
-.stn .dot{width:13px;height:13px;border-radius:50%;background:var(--sign);border:3px solid var(--sign-dim);flex:none}
-.stn .dot{border-color:var(--lc,var(--sign-dim))}
-.stn.on .dot{background:#fff;border-color:var(--lc,var(--coral))}
-.stn .gen{margin-left:auto;color:var(--sign-dim);font-weight:600;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:6px;flex:1}
-.card .genre{font-size:14px;color:var(--ink-2);font-weight:600}
-.card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
-.price{font-weight:800;font-variant-numeric:tabular-nums}
-.status{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px}
-.status.live{background:var(--good);color:var(--surface)}
-.status.soon{background:var(--sunk);color:var(--ink-2)}
-.status.own{background:var(--cobalt);color:var(--surface)}
-.none{grid-column:1/-1;color:var(--ink-2)}
+.a-auto{background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 14px,transparent 14px 28px),var(--lc)}
+.a-auto::after{content:attr(data-code);position:absolute;right:12px;top:10px;font-family:var(--f-sign);font-weight:700;font-size:26px;color:rgba(255,255,255,.55)}
 
-/* token band */
+/* station strip */
+.stn{display:flex;align-items:center;gap:8px;background:var(--sign);color:var(--sign-ink);padding:7px 12px;font-family:var(--f-sign);font-size:12.5px;font-weight:700;letter-spacing:.06em;border-bottom:2.5px solid var(--edge)}
+.stn .dot{width:13px;height:13px;border-radius:50%;background:var(--sign);border:3px solid var(--lc);flex:none}
+.stn.open .dot{background:#fff}
+.stn .sx{margin-left:auto;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase}
+.stn.open .sx{color:#5fe0a0}.stn.boarding .sx{color:var(--sun)}.stn.construction .sx{color:var(--sign-dim)}
+
+/* tags */
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--sunk);color:var(--ink)}
+.tag svg{width:14px;height:14px;flex:none}
+.tag.lv{background:none;border:1.5px solid var(--line)}
+.lvl{--lvc:var(--ink-2)} .lvl-Easy{--lvc:var(--open)} .lvl-Normal{--lvc:var(--cobalt)} .lvl-Hard{--lvc:var(--coral)} .lvl-Expert{--lvc:var(--ink)}
+.tag.lvx{background:none;border:1.5px solid var(--lvc)}
+.tag.no{opacity:.4;text-decoration:line-through}
+
+/* open-now feature */
+.feat{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);background:var(--surface);border-radius:22px;overflow:hidden}
+.feat .art{min-height:300px;border-right:2.5px solid var(--edge)}
+.feat .art .t{display:none}
+.feat .info{padding:24px;display:flex;flex-direction:column;gap:12px}
+.feat .lb{display:flex;align-items:center;gap:8px;font-family:var(--f-sign);font-weight:700;font-size:13px;color:var(--ink-2)}
+.feat h3{font-size:clamp(32px,4vw,44px)}
+.feat .hook{font-size:19px;font-weight:600;color:var(--ink-2);margin:0}
+.feat .facts{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;font-weight:700}
+.feat .facts span{display:inline-flex;align-items:center;gap:6px}
+.feat .facts i{width:8px;height:8px;border-radius:50%;background:var(--open)}
+.feat .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto}
+.feats{display:grid;gap:20px}
+@media (max-width:760px){.feat{grid-template-columns:1fr}.feat .art{min-height:200px;border-right:0;border-bottom:2.5px solid var(--edge)}.feat .info{padding:18px}}
+
+/* how it works */
+.how{background:var(--sign);color:var(--sign-ink);border-block:2.5px solid var(--edge)}
+.how .eyebrow{color:var(--sun)}
+.how .sec-head p{color:var(--sign-dim)}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;position:relative}
+.steps::before{content:"";position:absolute;left:6%;right:6%;top:27px;height:8px;border-radius:4px;background:linear-gradient(90deg,#f0412b 0 33%,#2f5bff 33% 66%,#13a05c 66%)}
+.step{position:relative;padding:0 14px;text-align:center}
+.step .n{position:relative;margin:0 auto 14px;width:62px;height:62px;border-radius:50%;background:var(--sign-ink);color:var(--sign);border:4px solid var(--edge);display:grid;place-items:center;font-family:var(--f-sign);font-weight:700;font-size:22px}
+.step h4{font-size:22px}
+.step p{margin:6px auto 0;color:var(--sign-dim);max-width:28ch;font-size:15px}
+@media (max-width:760px){
+  .steps{grid-template-columns:1fr;gap:22px}
+  .steps::before{left:30px;right:auto;top:20px;bottom:20px;width:8px;height:auto;background:linear-gradient(#f0412b 0 33%,#2f5bff 33% 66%,#13a05c 66%)}
+  .step{display:grid;grid-template-columns:62px 1fr;gap:14px;text-align:left;padding:0}
+  .step .n{margin:0}.step p{margin:4px 0 0}
+}
+
+/* network map */
+.net{background:var(--surface);border-radius:22px;padding:8px 16px 10px}
+.lrow{display:block;width:100%;border:0;background:none;text-align:left;padding:14px 4px 12px;border-radius:12px;color:inherit}
+.lrow + .lrow{border-top:1px dashed var(--line)}
+.lrow:hover .lname b{text-decoration:underline;text-underline-offset:3px}
+.lname{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px}
+.lbadge{min-width:32px;height:28px;padding:0 6px;border-radius:8px;background:var(--lc);color:#fff;border:2px solid var(--edge);display:grid;place-items:center;font-family:var(--f-sign);font-size:15px}
+.lname small{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:12.5px;white-space:nowrap}
+.trk{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:12px}
+.trk::before{content:"";position:absolute;left:10px;right:10px;top:8px;height:8px;border-radius:4px;background:var(--lc)}
+.trk.dash::before{background:repeating-linear-gradient(90deg,var(--lc) 0 14px,transparent 14px 24px);opacity:.75}
+.trk .train{position:absolute;z-index:2;top:2px;left:10px;width:34px;height:20px;border-radius:10px;background:var(--ink);border:2.5px solid var(--edge);animation:ride 9s ease-in-out infinite alternate;pointer-events:none}
+.trk .train::after{content:"";position:absolute;right:5px;top:4px;width:7px;height:7px;border-radius:2px;background:var(--sun)}
+@keyframes ride{from{left:10px}to{left:calc(100% - 44px)}}
+.st{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12.5px;font-weight:700;color:var(--ink-2);padding:0 2px;min-width:0;line-height:1.15;border:0;background:none}
+.st i{width:24px;height:24px;border-radius:50%;background:var(--surface);border:4px solid var(--edge);display:block;transition:transform .15s}
+.st:hover i{transform:scale(1.15)}
+.st.open{color:var(--ink)} .st.open i{background:var(--surface);border-color:var(--lc);box-shadow:0 0 0 3px var(--edge)}
+.st.construction i{width:14px;height:14px;margin:5px 0;border-width:3px;background:var(--sunk)}
+.st.more i{background:var(--lc)}
+.st .here{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:var(--coral);color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:6px;border:2px solid var(--edge);white-space:nowrap}
+.st span{overflow-wrap:anywhere}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 4px 2px;font-size:12.5px;font-weight:700;color:var(--ink-2);border-top:1px dashed var(--line);margin-top:4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:50%;border:3px solid var(--edge);background:var(--surface)}
+
+/* search + pickers */
+.tools{display:grid;gap:12px;margin-bottom:6px}
+.search{display:flex;align-items:center;gap:10px;background:var(--surface);border:2.5px solid var(--edge);border-radius:14px;padding:0 14px}
+.search svg{width:18px;height:18px;color:var(--ink-2);flex:none}
+.search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-weight:600;color:var(--ink);padding:12px 0;outline:none}
+.selects{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.sel{display:grid;gap:4px;min-width:0}
+.sel > span{font-family:var(--f-sign);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);padding-left:2px}
+.dd{display:flex;align-items:center;gap:6px;width:100%;min-width:0;background:var(--surface);color:var(--ink);border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:12px;padding:10px 10px 10px 12px;font-weight:800;font-size:15px;text-align:left;transition:transform .1s,box-shadow .1s}
+.dd:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.dd .ddv{flex:1;min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+.dd .ddv > span{overflow:hidden;text-overflow:ellipsis}
+.dd .car{width:13px;height:13px;flex:none}
+.dd.on{background:var(--ink);color:var(--bg)}
+.mk{flex:none}
+.mk.badge{min-width:22px;height:20px;padding:0 4px;border-radius:5px;background:var(--lc);color:#fff;border:1.5px solid var(--edge);display:inline-grid;place-items:center;font-family:var(--f-sign);font-size:11.5px;line-height:1}
+.mk.ldot{width:11px;height:11px;border-radius:50%;background:var(--lvc);border:1.5px solid var(--edge)}
+.mk.ico svg{width:15px;height:15px;display:block}
+.clearRow{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.clearRow button{white-space:nowrap;border:0;background:none;color:var(--coral);font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:0}
+@media (max-width:760px){.selects{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* station cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:18px}
+.card{position:relative;background:var(--surface);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;transition:transform .16s,box-shadow .16s}
+.card:hover{transform:translate(-2px,-3px);box-shadow:6px 7px 0 var(--edge)}
+.card .art{aspect-ratio:16/10;border-bottom:2.5px solid var(--edge);transition:filter .2s}
+.card .art .t{display:none}
+.card:hover .art{filter:saturate(1.1)}
+.card.boarding .art{filter:saturate(.65)}
+.card.construction .art{filter:grayscale(1) contrast(.85) brightness(.9)}
+.card.construction .art::before{content:"";position:absolute;inset:0;z-index:1;background:repeating-linear-gradient(-45deg,rgba(255,201,41,.38) 0 10px,transparent 10px 22px)}
+.price{position:absolute;right:10px;top:46px;z-index:2;background:var(--surface);color:var(--ink);border:2px solid var(--edge);border-radius:8px;padding:1px 8px;font-weight:800;font-size:13px;font-variant-numeric:tabular-nums}
+.card .body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+.card h4{font-size:22px}
+.card .hook{margin:0;color:var(--ink-2);font-size:14.5px;font-weight:600;line-height:1.35}
+.card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:4px}
+.card .act{font-weight:800;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.card.open .act{background:var(--coral);color:var(--coral-ink);border:2px solid var(--edge);border-radius:10px;padding:5px 12px}
+.card.boarding .act{color:var(--board)}
+.card.construction .act{color:var(--build)}
+.card .live{font-size:13px;font-weight:800;color:var(--open);display:inline-flex;align-items:center;gap:5px}
+.card .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--open)}
+.none{grid-column:1/-1;background:var(--surface);border:2.5px dashed var(--line);border-radius:18px;padding:26px;text-align:center;color:var(--ink-2)}
+.none b{display:block;font-family:var(--f-display);font-size:24px;color:var(--ink);margin-bottom:6px}
+.moreBtn{display:flex;justify-content:center;margin-top:24px}
+
+/* Gametro9 Card + fare cards */
 .band{background:var(--sun);color:var(--sun-ink);border-block:2.5px solid var(--edge)}
-.band .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:32px;align-items:center}
-.band h2{font-size:clamp(34px,5vw,56px)}
-.band .eyebrow{color:var(--sun-ink);opacity:.75}
-.band p{max-width:40ch;font-weight:500}
-.band .note{background:rgba(255,255,255,.55);color:var(--sun-ink)}
-.packs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.pack{background:var(--surface);color:var(--ink);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;position:relative}
-.pack .amt{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,6.6vw,32px);line-height:1;display:flex;align-items:center;gap:9px;font-variant-numeric:tabular-nums}
-.pack .bonus{font-size:13.5px;color:var(--good);font-weight:800;min-height:21px}
-.pack .flag{position:absolute;top:-13px;right:12px;background:var(--cobalt);color:var(--surface);font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:6px;border:2px solid var(--edge)}
-.pack .btn{justify-content:center;margin-top:6px}
-.note{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink-2);margin-top:12px}
-.mcard{margin:16px 0 6px;max-width:330px;aspect-ratio:1.586;border-radius:18px;background:var(--coral);color:#fff;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
-.mcard::before{content:"";position:absolute;left:-12%;right:-12%;top:56%;height:12px;background:var(--sign);transform:rotate(-7deg)}
-.mcard::after{content:"";position:absolute;left:-12%;right:-12%;top:calc(56% + 16px);height:6px;background:var(--l-sun);transform:rotate(-7deg)}
+.band .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:36px;align-items:start}
+.band .eyebrow{color:var(--sun-ink);opacity:.8}
+.band h2{font-size:clamp(36px,5vw,56px);margin-top:6px}
+.band .lead{font-size:17px;font-weight:600;max-width:40ch;margin:12px 0 0}
+.mcard{margin:22px 0 16px;max-width:360px;aspect-ratio:1.586;border-radius:20px;background:var(--coral);color:#fff;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;border:2.5px solid var(--edge);box-shadow:6px 6px 0 var(--edge);transform:rotate(-2deg)}
+.mcard::before{content:"";position:absolute;left:-12%;right:-12%;top:56%;height:13px;background:#14163a;transform:rotate(-7deg)}
+.mcard::after{content:"";position:absolute;left:-12%;right:-12%;top:calc(56% + 17px);height:7px;background:#ffc929;transform:rotate(-7deg)}
 .mcard .top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
-.mcard .top b{font-family:var(--f-display);font-size:20px;letter-spacing:-.01em}
-.mcard .top small{font-weight:800;font-size:11px;letter-spacing:.14em;background:rgba(0,0,0,.18);padding:2px 8px;border-radius:5px}
-.mcard .bal{position:relative;z-index:1;display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
-.mcard .who{position:relative;z-index:1;display:flex;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
-@media (max-width:820px){.band .wrap{grid-template-columns:1fr}}
+.mcard .top b{font-family:var(--f-display);font-size:21px}
+.mcard .top small{font-family:var(--f-sign);font-weight:700;font-size:11px;letter-spacing:.12em;background:rgba(0,0,0,.2);padding:2px 8px;border-radius:5px}
+.mcard .bal{position:relative;z-index:1;display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.mcard .who{position:relative;z-index:1;display:flex;justify-content:space-between;font-family:var(--f-sign);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.perks{display:grid;gap:8px;margin:0;padding:0;list-style:none;font-weight:700}
+.perks li{display:flex;gap:10px;align-items:flex-start}
+.perks svg{width:20px;height:20px;flex:none;margin-top:1px}
+.fares{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.fare{position:relative;background:var(--surface);color:var(--ink);border-radius:18px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:6px}
+.fare::before{content:"";position:absolute;left:-2.5px;right:-2.5px;top:52px;border-top:2.5px dashed var(--line)}
+.fare .amt{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,6vw,34px);line-height:1;display:flex;align-items:center;gap:9px;font-variant-numeric:tabular-nums;height:36px}
+.fare .gets{margin-top:12px;font-weight:700;font-size:14.5px;min-height:40px;line-height:1.35}
+.fare .unit{font-size:12.5px;font-weight:700;color:var(--ink-2)}
+.fare .bonus{font-family:var(--f-sign);font-size:12px;font-weight:700;color:var(--open)}
+.fare .btn{margin-top:8px}
+.fare .flag{position:absolute;top:-13px;right:14px;background:var(--cobalt);color:#fff;font-family:var(--f-sign);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:6px;border:2px solid var(--edge)}
+.fare.best .flag{background:var(--coral)}
+.paynote{grid-column:1/-1;font-size:13.5px;font-weight:700;opacity:.85;margin:4px 0 0}
+@media (max-width:860px){.band .wrap{grid-template-columns:1fr}}
+@media (max-width:420px){.fares{gap:12px}.fare{padding:14px 12px 12px}}
 
-/* library */
-.lib{display:flex;gap:16px;overflow-x:auto;padding:2px 6px 10px 2px}
-.lib .item{flex:0 0 210px;background:var(--surface);border-radius:14px;overflow:hidden}
-.lib .art{height:90px;border-bottom:2.5px solid var(--edge)}
-.lib .art .t{font-size:18px}
-.empty{background:var(--surface);border:2.5px dashed var(--line);border-radius:16px;padding:24px;text-align:center;color:var(--ink-2)}
+/* My trips */
+.trips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.trip{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px;align-items:center;background:var(--surface);border-radius:16px;padding:10px;text-align:left;width:100%}
+.trip .art{width:72px;height:72px;border-radius:12px;border:2px solid var(--edge);padding:0}
+.trip .art .t{display:none}
+.trip b{display:block;font-size:17px}
+.trip small{color:var(--ink-2);font-weight:700}
+.empty{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;background:var(--surface);border-radius:22px;padding:24px}
+.empty .route{position:relative;width:24px;height:150px;margin-left:10px}
+.empty .route::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:8px;border-radius:4px;background:repeating-linear-gradient(var(--line) 0 12px,transparent 12px 20px)}
+.empty .route i{position:absolute;left:0;bottom:0;width:24px;height:24px;border-radius:50%;background:var(--coral);border:4px solid var(--edge)}
+.empty h3{font-size:30px}
+.empty p{color:var(--ink-2);margin:8px 0 16px;max-width:46ch}
 
 /* footer */
-footer{border-top:2.5px solid var(--edge);background:var(--surface);padding-block:28px 34px;color:var(--ink-2);font-size:14px}
-footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-footer b{color:var(--ink)}
-footer nav{display:flex;gap:14px;flex-wrap:wrap}
-footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
-.testline{background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;text-align:center;padding:5px 16px}
+footer{background:var(--sign);color:var(--sign-dim);padding-block:34px calc(34px + env(safe-area-inset-bottom,0px));font-size:14px}
+footer .wrap{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));gap:24px}
+footer b{color:var(--sign-ink);font-family:var(--f-display);font-size:22px}
+footer h5{margin:0 0 8px;color:var(--sign-ink);font-family:var(--f-sign);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+footer nav{display:grid;gap:6px}
+footer nav button,footer nav a{border:0;background:none;padding:0;color:var(--sign-dim);text-align:left;text-decoration:none;font-weight:600}
+footer nav button:hover,footer nav a:hover{color:var(--sign-ink)}
+@media (max-width:760px){footer .wrap{grid-template-columns:1fr 1fr}footer .wrap > div:first-child{grid-column:1/-1}}
+
+/* bottom tab bar (phones) */
+.tabbar{display:none}
+@media (max-width:760px){
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border-top:2.5px solid var(--edge);
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;font-size:11.5px;font-weight:800;color:var(--ink-2);padding:4px 0;border-radius:10px}
+  .tabbar a svg{width:22px;height:22px}
+  .tabbar a.on{color:var(--coral)}
+  body{padding-bottom:70px}
+  footer{padding-bottom:calc(34px + 70px)}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+}
 
 /* dialogs */
 .scrim{overscroll-behavior:contain;position:fixed;inset:0;background:var(--scrim);z-index:30;display:flex;align-items:flex-end;justify-content:center}
-.scrim[hidden]{display:none!important}
-.dlg{background:var(--surface);width:100%;max-width:560px;max-height:88%;overflow-y:auto;border-radius:22px 22px 0 0;border:2.5px solid var(--edge);border-bottom:0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
-@media (min-width:700px){.scrim{align-items:center}.dlg{border-radius:22px;border-bottom:2.5px solid var(--edge);box-shadow:6px 6px 0 var(--edge);padding-bottom:18px}}
-.dlg .art{height:170px;border-bottom:2.5px solid var(--edge)}
+.dlg{background:var(--surface);width:100%;max-width:580px;max-height:90%;overflow-y:auto;overscroll-behavior:contain;border-radius:22px 22px 0 0;border:2.5px solid var(--edge);border-bottom:0;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (min-width:700px){.scrim{align-items:center}.dlg{border-radius:22px;border-bottom:2.5px solid var(--edge);box-shadow:6px 6px 0 var(--edge);padding-bottom:20px}}
+.dlg .art{aspect-ratio:16/9;border-bottom:2.5px solid var(--edge)}
 .dlg .in{padding:16px 20px 0;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-.dlg h3{font-size:32px;margin-top:4px}
-.dlg .x{position:sticky;top:10px;float:right;margin:10px 10px -46px 0;z-index:2;border:2px solid var(--edge);background:var(--surface);width:36px;height:36px;border-radius:50%;font-size:16px}
+.dlg h3{font-size:32px;margin-top:6px}
+.dlg .x{position:sticky;top:10px;float:right;margin:10px 10px -46px 0;z-index:3;border:2px solid var(--edge);background:var(--surface);width:38px;height:38px;border-radius:50%;font-size:16px}
 .dlg ul{padding-left:20px;margin:8px 0;color:var(--ink-2)}
 .dlg .acts{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
-.paylist{display:grid;gap:8px;margin-top:12px}
-.paylist label{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
-.paylist input{accent-color:var(--coral)}
-.sum{display:flex;justify-content:space-between;font-variant-numeric:tabular-nums;padding-block:4px;color:var(--ink-2)}
-.sum.total{color:var(--ink);font-weight:800;border-top:2px solid var(--line);margin-top:6px;padding-top:8px}
-.field{display:grid;gap:4px;margin-top:10px;font-weight:700;font-size:14px}
-.field input{font:inherit;font-weight:500;border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:9px 12px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:99px;font-weight:700;z-index:40;opacity:0;transition:.2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.dlg .hook{font-size:18px;font-weight:600;color:var(--ink-2);margin:8px 0 0}
+.howto{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;margin:14px 0 4px;padding:12px 14px;background:var(--sunk);border-radius:12px}
+.howto .k{font-family:var(--f-sign);font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.note{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink-2);margin-top:14px}
+.field{display:grid;gap:4px;margin-top:12px;font-weight:700;font-size:14px}
+.field input{font:inherit;font-weight:500;border:2.5px solid var(--edge);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px}
+.pick .phead{background:var(--sign);color:var(--sign-ink);padding:18px 20px 14px;padding-left:max(20px,env(safe-area-inset-left,0px));border-bottom:2.5px solid var(--edge)}
+.pick .phead .eyebrow{color:var(--sun)}
+.pick .phead h3{font-size:28px;margin-top:4px}
+.plist{padding:12px 14px 4px;display:grid;gap:8px}
+.popt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:2.5px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:800;font-size:16px}
+.popt:hover{border-color:var(--edge)}
+.popt .mk.badge{min-width:34px;height:30px;font-size:16px;border-radius:8px;border-width:2px}
+.popt .mk.ldot{width:16px;height:16px;border-width:2px}
+.popt .mk.ico{width:34px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center}
+.popt .mk.ico svg{width:18px;height:18px}
+.popt .lab2{flex:1;min-width:0}
+.popt small{display:block;font-weight:600;font-size:12.5px;color:var(--ink-2)}
+.popt .cnt{font-family:var(--f-sign);font-size:13px;font-weight:700;color:var(--ink-2);background:var(--sunk);border-radius:99px;padding:2px 9px}
+.popt[aria-checked="true"]{border-color:var(--edge);box-shadow:3px 3px 0 var(--edge);background:var(--ink);color:var(--bg)}
+.popt[aria-checked="true"] small{color:var(--bg);opacity:.75}
+.popt[aria-checked="true"] .cnt{background:var(--coral);color:#fff}
+.popt[aria-checked="true"] .mk.ico{background:rgba(255,255,255,.15)}
+.route{position:relative;margin:14px 0 4px;padding-left:36px}
+.route::before{content:"";position:absolute;left:12px;top:16px;bottom:16px;width:8px;border-radius:4px;background:var(--lc)}
+.rstop{position:relative;display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:left;padding:10px 6px;border-radius:10px}
+.rstop:hover{background:var(--sunk)}
+.rstop::before{content:"";position:absolute;left:-31px;top:50%;width:18px;height:18px;margin-top:-12px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge)}
+.rstop.open::before{border-color:var(--lc);box-shadow:0 0 0 2px var(--edge)}
+.rstop .code{font-family:var(--f-sign);font-size:12.5px;font-weight:700;color:var(--ink-2);min-width:44px}
+.rstop b{flex:1;min-width:0}
+.pill{font-family:var(--f-sign);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.pill.open{background:var(--open);color:#fff}.pill.boarding{background:var(--board);color:#2a1d00}.pill.construction{background:var(--sunk);color:var(--ink-2)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-weight:700;z-index:40;opacity:0;transition:.2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 .toast.on{opacity:1;transform:translate(-50%,0)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== app onboarding: intro → disclaimer → sign up (installed app only) ===== */
+.scrim{z-index:60}.toast{z-index:70}
+#ob{position:fixed;inset:0;z-index:50;background:var(--sign);color:var(--sign-ink);overflow-y:auto;overscroll-behavior:contain;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:32px 32px}
+.obs{min-height:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(22px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(22px,env(safe-area-inset-left,0px));animation:obin .35s ease both}
+@keyframes obin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.obs h2{font-size:clamp(34px,9vw,44px);color:var(--sign-ink)}
+.obs p.sub{color:var(--sign-dim);font-size:17px;font-weight:500;margin:12px 0 0}
+.obs .eyebrow{color:var(--sun)}
+.obs .grow{flex:1}
+.obs form{display:flex;flex-direction:column;flex:1}
+.obs .btn{width:100%}
+.obs .btn.alt{background:transparent;color:var(--sign-ink);border-color:var(--sign-dim);box-shadow:none}
+.obtop{display:flex;justify-content:space-between;align-items:center;min-height:40px}
+.obtop .skip{border:0;background:none;color:var(--sign-dim);font-weight:800;padding:8px 0}
+.obtop .back{border:2px solid var(--sign-dim);background:none;color:var(--sign-ink);width:38px;height:38px;border-radius:50%;font-weight:800}
+/* splash */
+.splash{justify-content:center;align-items:center;text-align:center}
+.splash .lg{width:128px;height:128px;animation:pop .7s cubic-bezier(.2,1.6,.4,1) .1s both;filter:drop-shadow(6px 6px 0 #04051a)}
+.splash .wm{font-family:var(--f-display);font-weight:800;font-size:46px;letter-spacing:-.03em;margin-top:18px;animation:obin .5s ease .55s both}
+.splash .wm span{color:var(--coral)}
+.splash .tl{color:var(--sign-dim);font-weight:700;font-size:17px;margin-top:6px;animation:obin .5s ease .8s both}
+.splash .line{position:relative;width:min(280px,80%);height:8px;border-radius:4px;background:rgba(255,255,255,.12);margin:34px auto 0;overflow:visible}
+.splash .line::before{content:"";position:absolute;inset:0;border-radius:4px;background:linear-gradient(90deg,#f0412b,#2f5bff,#13a05c,#e89a00);transform-origin:left;animation:draw 1.1s ease .9s both}
+.splash .line i{position:absolute;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:var(--sign);border:3.5px solid var(--sign-ink);animation:lit .3s ease both}
+@keyframes pop{from{transform:scale(.3) rotate(-12deg);opacity:0}to{transform:none;opacity:1}}
+@keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes lit{from{transform:scale(0)}to{transform:scale(1)}}
+/* slides */
+.slide-art{height:220px;margin:18px 0 26px;border-radius:24px;background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.14);display:grid;place-items:center;position:relative;overflow:hidden}
+.slide-art svg{max-width:88%;height:auto}
+.dots{display:flex;gap:8px;justify-content:center;margin:22px 0 18px}
+.dots i{width:9px;height:9px;border-radius:5px;background:rgba(255,255,255,.25);transition:width .2s}
+.dots i.on{width:26px;background:var(--sun)}
+/* disclaimer */
+.rules{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:12px}
+.rules li{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);border-radius:16px;padding:12px}
+.rules .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--lc);border:2px solid #04051a}
+.rules .ic svg{width:22px;height:22px;color:#fff}
+.rules b{display:block;font-size:16px}
+.rules small{display:block;color:var(--sign-dim);font-size:14px;font-weight:500;line-height:1.4;margin-top:2px}
+.check{display:flex;gap:12px;align-items:flex-start;margin-top:14px;font-weight:700;font-size:15px;line-height:1.4;cursor:pointer}
+.check input{appearance:none;-webkit-appearance:none;flex:none;width:26px;height:26px;margin:0;border-radius:8px;border:2.5px solid var(--sign-ink);background:transparent;display:grid;place-items:center;cursor:pointer}
+.check input:checked{background:var(--sun);border-color:var(--sun)}
+.check input:checked::after{content:"";width:12px;height:7px;border-left:3px solid #14163a;border-bottom:3px solid #14163a;transform:rotate(-45deg) translate(1px,-1px)}
+.check a,.lnk{color:var(--sun);text-decoration:underline;text-underline-offset:3px;background:none;border:0;padding:0;font:inherit;font-weight:800;cursor:pointer}
+/* sign up */
+.ofield{display:grid;gap:6px;margin-top:22px}
+.ofield > span{font-family:var(--f-sign);font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sign-dim)}
+.oname{flex:1;min-width:0;border:0;background:var(--sign-ink);color:#14163a;font:inherit;font-weight:800;font-size:21px;padding:13px 14px;outline:none;letter-spacing:.04em}
+.oname{border:2.5px solid #04051a;border-radius:14px;box-shadow:4px 4px 0 #04051a;width:100%}
+.oerr{color:#ff8a7a;font-weight:700;font-size:14px;min-height:20px;margin-top:8px}
+.legal{color:var(--sign-dim);font-size:13px;font-weight:600;text-align:center;margin-top:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
-<div class="testline">Sample site · test mode, no real payments are taken</div>
 <header class="bar">
   <div class="wrap">
-    <a class="logo" href="#top" aria-label="Gametro9 home">
-      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#f0412b" stroke="var(--edge)" stroke-width="2.5"/><path d="M12 13 H28 Q33 13 33.6 19 L34.6 25.5 Q35 31 30.5 30 Q28.6 29.6 27 27 L25.5 25 H14.5 L13 27 Q11.4 29.6 9.5 30 Q5 31 5.4 25.5 L6.4 19 Q7 13 12 13 Z" fill="#fff"/><path d="M11.8 16.5 h2.6 v2.6 h2.6 v2.6 h-2.6 v2.6 h-2.6 v-2.6 h-2.6 v-2.6 h2.6 Z" fill="#f0412b"/><circle cx="26.5" cy="20.2" r="4.6" fill="#f0412b"/><text x="26.5" y="23.4" text-anchor="middle" font-family="Arial Black,system-ui" font-weight="900" font-size="8.6" fill="#fff">9</text></svg>
-      <b>Gametro<span>9</span></b>
-    </a>
-    <nav class="links"><a href="#games">Stations</a><a href="#tokens">Recharge</a><a href="#library">My games</a></nav>
-    <button class="wallet" id="walletBtn" aria-label="Your Tokens"><svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="bal">0</span></button>
-    <button class="btn small alt" id="signBtn">Sign in</button>
+    <a class="logo" href="#top" aria-label="Gametro9 home"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#f0412b" stroke="var(--edge)" stroke-width="2.5"/><path d="M12 13 H28 Q33 13 33.6 19 L34.6 25.5 Q35 31 30.5 30 Q28.6 29.6 27 27 L25.5 25 H14.5 L13 27 Q11.4 29.6 9.5 30 Q5 31 5.4 25.5 L6.4 19 Q7 13 12 13 Z" fill="#fff"/><path d="M11.8 16.5 h2.6 v2.6 h2.6 v2.6 h-2.6 v2.6 h-2.6 v-2.6 h-2.6 v-2.6 h2.6 Z" fill="#f0412b"/><circle cx="26.5" cy="20.2" r="4.6" fill="#f0412b"/><text x="26.5" y="23.4" text-anchor="middle" font-family="Arial Black,system-ui" font-weight="900" font-size="8.6" fill="#fff">9</text></svg><b>Gametro<span>9</span></b></a>
+    <nav class="links"><a href="#stations">Stations</a><a href="#network">Network</a><a href="#card">Gametro9 Card</a><a href="#trips">My trips</a></nav>
+    <a class="wallet" href="#card" aria-label="Your Tokens"><svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="bal">0</span></a>
+    <button class="btn small alt" id="signBtn">Get card</button>
   </div>
 </header>
 
@@ -355,65 +463,87 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
   <section class="hero">
     <div class="wrap">
       <div>
-        <div class="eyebrow">Every game, A to Z</div>
-        <h1>Every game.<br><em>One network.</em></h1>
-        <p class="lead">Every game is a station, and every kind of game has its own line. Hop on anywhere, and one Gametro Card carries your Tokens to all of them.</p>
-        <div class="cta"><a class="btn" href="#games">See all stations</a><a class="btn alt" href="#tokens">Recharge card</a></div>
+        <div class="eyebrow">Now boarding · Platform 1</div>
+        <h1>Every game.<br><em>One card.</em></h1>
+        <p class="lead">Original games built for your phone. <b>Recharge your Gametro9 Card once</b> and spend Tokens in every game on the network.</p>
+        <div class="cta" id="heroCta"></div>
+        <button class="install" id="installBtn" data-install hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 7.5v7M9 11.5l3 3 3-3"/></svg><span><b>Install the Gametro9 app</b><small>Free · Home-screen icon · No Play Store needed</small></span></button>
+        <div class="ride" aria-hidden="true"><i style="left:0"></i><i style="left:33%"></i><i style="left:66%"></i><i style="left:100%"></i><span class="tr"></span></div>
+        <div class="trust">
+          <span><svg viewBox="0 0 16 16"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Free to start</span>
+          <span><svg viewBox="0 0 16 16"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>No download to try</span>
+          <span><svg viewBox="0 0 16 16"><path d="M3 8.5 6.5 12 13 4.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>No gambling, no cash-out</span>
+        </div>
       </div>
       <div class="board stk" id="board" aria-live="polite"></div>
     </div>
   </section>
-  <div class="boarding"><div class="wrap" id="boarding"></div></div>
 
-  <section id="happening">
+  <section id="open">
     <div class="wrap">
-      <div class="sec-head"><div><div class="eyebrow">Right now</div><h2>What's happening</h2></div></div>
-      <div class="happen" id="happen"></div>
+      <div class="sec-head"><div><div class="eyebrow">Open now</div><h2 id="openTitle">Ready to board</h2><p>Tap and play in your browser. No sign-up, no download.</p></div></div>
+      <div class="feats" id="feats"></div>
     </div>
   </section>
 
-  <section id="games">
+  <section class="how" id="how">
     <div class="wrap">
-      <div class="sec-head">
-        <div><div class="eyebrow">All stations</div><h2>Every game</h2><p id="countLine"></p></div>
-        <div class="filters" id="filters">
-          <button aria-pressed="true" data-f="all">All</button>
-          <button aria-pressed="false" data-f="live">Out now</button>
-          <button aria-pressed="false" data-f="soon">Coming soon</button>
+      <div class="sec-head"><div><div class="eyebrow">How it works</div><h2>Three stops to play</h2><p>One card works across the whole network.</p></div></div>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><div><h4>Pick a station</h4><p>Every game is a station. Every kind of game has its own line.</p></div></div>
+        <div class="step"><span class="n">2</span><div><h4>Play free</h4><p>Start any open game straight away. Your progress saves on your card.</p></div></div>
+        <div class="step"><span class="n">3</span><div><h4>Recharge once</h4><p>Top up Tokens a single time and spend them in every game.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="network">
+    <div class="wrap">
+      <div class="sec-head"><div><div class="eyebrow">The network</div><h2>Pick your line</h2><p id="netStats"></p></div></div>
+      <div class="net stk"><div id="net"></div>
+        <div class="legend"><span><i style="border-color:var(--coral);box-shadow:0 0 0 2px var(--edge)"></i>Open</span><span><i></i>Boarding soon</span><span><i style="width:10px;height:10px;background:var(--sunk)"></i>Under construction</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="stations">
+    <div class="wrap">
+      <div class="sec-head"><div><div class="eyebrow">All stations</div><h2>Find your next game</h2><p id="countLine"></p></div></div>
+      <div class="tools">
+        <label class="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="m13 13 5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><input id="q" type="search" placeholder="Search games or codes (T-01)" autocomplete="off" aria-label="Search games"></label>
+        <div class="selects">
+          <div class="sel"><span>Line</span><button class="dd" id="ddLine" data-dd="line" aria-haspopup="dialog"><span class="ddv" id="ddLineV"></span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          <div class="sel"><span>Status</span><button class="dd" id="ddStat" data-dd="stat" aria-haspopup="dialog"><span class="ddv" id="ddStatV"></span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          <div class="sel"><span>Play</span><button class="dd" id="ddMode" data-dd="mode" aria-haspopup="dialog"><span class="ddv" id="ddModeV"></span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+          <div class="sel"><span>Level</span><button class="dd" id="ddLvl" data-dd="lvl" aria-haspopup="dialog"><span class="ddv" id="ddLvlV"></span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
         </div>
+        <div class="clearRow" id="clearRow" hidden><span id="filterNote"></span><button id="clearBtn">Clear filters</button></div>
       </div>
-      <div class="net stk" style="margin-bottom:22px">
-        <div class="net-head"><b>Network map</b><span id="netStats"></span></div>
-        <div id="net"></div>
-      </div>
-      <div class="tools"><label class="search"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games"></label></div>
-      <div class="selects">
-        <div class="sel"><span>Line</span><button class="dd" id="ddLine" data-dd="line" aria-haspopup="dialog"><span class="ddv" id="ddLineV">All lines</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-        <div class="sel"><span>Play</span><button class="dd" id="ddMode" data-dd="mode" aria-haspopup="dialog"><span class="ddv" id="ddModeV">Any</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-        <div class="sel"><span>Level</span><button class="dd" id="ddLvl" data-dd="lvl" aria-haspopup="dialog"><span class="ddv" id="ddLvlV">Any level</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-      </div>
-      <div class="clearRow" id="clearRow" hidden><span id="filterNote"></span><button id="clearBtn">Clear filters</button></div>
-      <div class="grid" id="grid" style="margin-top:18px"></div>
+      <div class="grid" id="grid"></div>
       <div class="moreBtn" id="moreWrap" hidden><button class="btn alt" id="moreBtn">Show more stations</button></div>
     </div>
   </section>
 
-  <section class="band" id="tokens">
+  <section class="band" id="card">
     <div class="wrap">
       <div>
-        <div class="eyebrow">Gametro Card</div>
+        <div class="eyebrow">Gametro9 Card</div>
         <h2>One card. Every game.</h2>
-        <div class="mcard" aria-label="Your Gametro Card"><div class="top"><b>Gametro9</b><small>TOKEN CARD</small></div><div class="bal"><svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="cardBal">0</span></div><div class="who"><span id="cardName">Guest rider</span><span>All lines</span></div></div>
-        <p>Recharge once and spend Tokens in any Gametro9 game on recipes, skins, staff and boosts.</p>
-        <p class="note">Tokens are for in-game items only. They cannot be withdrawn, sold or exchanged for money.</p>
+        <p class="lead">Recharge once and spend Tokens in any game on the network. New games join the same card, so your Tokens never get stuck in one app.</p>
+        <div class="mcard" aria-label="Your Gametro9 Card"><div class="top"><b>Gametro9</b><small>TOKEN CARD</small></div><div class="bal"><svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="cardBal">0</span></div><div class="who"><span id="cardName">Your name here</span><span>All lines</span></div></div>
+        <ul class="perks">
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#14163a"/><path d="M6 10.5 8.7 13 14 7" fill="none" stroke="#ffc929" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>One balance for every Gametro9 game</li>
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#14163a"/><path d="M6 10.5 8.7 13 14 7" fill="none" stroke="#ffc929" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Bigger packs give bonus Tokens</li>
+          <li><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#14163a"/><path d="M6 10.5 8.7 13 14 7" fill="none" stroke="#ffc929" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Tokens are for in-game items only and can't be cashed out</li>
+        </ul>
       </div>
-      <div class="packs" id="packs"></div>
+      <div class="fares" id="packs"></div>
     </div>
   </section>
 
-  <section id="library">
+  <section id="trips">
     <div class="wrap">
-      <div class="sec-head"><div><h2>My games</h2><p>Games you have added to your account</p></div></div>
+      <div class="sec-head"><div><div class="eyebrow">My trips</div><h2>Your journey</h2><p>Games you've played and stations you're watching, saved on this phone.</p></div></div>
       <div id="lib"></div>
     </div>
   </section>
@@ -421,330 +551,389 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
 
 <footer>
   <div class="wrap">
-    <div><b>Gametro9</b> · Every game. One network.<br>© 2026 Gametro9<br>Support: support@gametro9.com</div>
-    <nav><button data-page="about">About</button><button data-page="privacy">Privacy policy</button><button data-page="terms">Terms</button><button data-page="refund">Refunds</button></nav>
+    <div><b>Gametro<span style="color:var(--coral)">9</span></b><p style="margin:8px 0 0;max-width:34ch">Every game. One card. Original games for your phone, all on one network.</p><p style="margin:10px 0 0">support@gametro9.com</p><p style="margin:6px 0 0">© 2026 Gametro9</p></div>
+    <div><h5>Ride</h5><nav><a href="#stations">All stations</a><a href="#network">Network map</a><a href="#card">Gametro9 Card</a><a href="#trips">My trips</a><button data-install id="footInstall" hidden>Install the app</button></nav></div>
+    <div><h5>Help</h5><nav><button data-page="about">About</button><button data-page="privacy">Privacy policy</button><button data-page="terms">Terms</button><button data-page="refund">Refunds</button></nav></div>
   </div>
 </footer>
 
+<nav class="tabbar" id="tabbar" aria-label="Main">
+  <a href="#top" data-tab="top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></svg>Home</a>
+  <a href="#stations" data-tab="stations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><path d="M9 12h6"/></svg>Stations</a>
+  <a href="#card" data-tab="card"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 11h18"/></svg>Card</a>
+  <a href="#trips" data-tab="trips"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>My trips</a>
+</nav>
+
 <div class="scrim" id="scrim" hidden><div class="dlg" id="dlg" role="dialog" aria-modal="true"></div></div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script src="games.js"></script>
 <script src="stats.js"></script>
 <script>
-/* All games and lines come from games.js. Nothing here is fixed to a number of games. */
-const LINES = (window.G9_LINES||[]).map(l=>({...l}));
-const LINE = Object.fromEntries(LINES.map(l=>[l.id,l]));
-const GAMES = (window.G9_GAMES||[]).map(g=>({...g}));
-const fallbackLine = {id:'other',name:'Other',code:'X',color:'#7a7fa8'};
-const lineOf = g => LINE[g.line] || fallbackLine;
-/* station codes are numbered per line in launch order: T-01, T-02 ... T-100 ... */
-const perLine = {};
-GAMES.forEach(g=>{ const L=lineOf(g); perLine[L.id]=(perLine[L.id]||0)+1; g.code=L.code+'-'+String(perLine[L.id]).padStart(2,'0'); g.n=g.name; });
-const TOK = '<svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>';
-const TOK_LG = '<svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>';
-const PACKS = [
-  {t:100,p:19},{t:550,p:99,b:'+10% bonus'},{t:3000,p:499,b:'+20% bonus',best:true},{t:13000,p:1999,b:'+30% bonus'}
-];
-const PAGE = 12;
-
-/* ---- player stats ----
-   Real numbers: set G9_STATS_CONFIG.url in stats.js to a JSON address that returns
-   {"online":N,"today":N,"games":{"<game id>":{"now":N,"today":N,"week":N,"waiting":N}}}
-   Until then the board runs on demo numbers and says so. Only open games can have players. */
-const CFG = Object.assign({url:'', refreshSeconds:30, demo:true}, window.G9_STATS_CONFIG||{});
-let ST = {online:0, today:0, games:{}, demo:true};
-function hash(t){ let h=2166136261; for(const c of t){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return Math.abs(h); }
-function demoStats(){
-  const games={}; let online=0, today=0;
-  GAMES.forEach(g=>{ const h=hash(g.id);
-    if(g.live){ const now=180+h%1400; games[g.id]={now, today:now*(7+h%5), week:-6+h%70, waiting:0}; online+=now; today+=games[g.id].today; }
-    else games[g.id]={now:0,today:0,week:0,waiting:300+h%4200};
-  });
-  return {online,today,games,demo:true};
-}
-function drift(){ if(!ST.demo) return; let online=0;
-  GAMES.forEach(g=>{ const s=ST.games[g.id]; if(g.live&&s){ s.now=Math.max(20,Math.round(s.now*(1+(Math.random()-.47)*.04))); online+=s.now; } });
-  ST.online=online; renderBoard(); }
-async function loadStats(){
-  if(CFG.url){ try{ const r=await fetch(CFG.url,{cache:'no-store'}); if(r.ok){ const j=await r.json(); ST={online:j.online||0,today:j.today||0,games:j.games||{},demo:false}; renderLive(); return; } }catch(e){} }
-  if(CFG.demo){ if(!Object.keys(ST.games).length) ST=demoStats(); } else ST={online:0,today:0,games:{},demo:false};
-  renderLive();
-}
-const S = id => ST.games[id] || {now:0,today:0,week:0,waiting:0};
-function renderLive(){ renderBoard(); renderHappen(); renderGrid(); }
-const fmt = n => n.toLocaleString('en-IN');
-const esc = t => String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const $ = id => document.getElementById(id);
-const KEY='gametro9-store';
-
-let U = {name:'', tokens:0, owned:[], notify:[]};
-try{ const r=localStorage.getItem(KEY); if(r) U=Object.assign(U,JSON.parse(r)); }catch(e){}
-const save = () => { try{ localStorage.setItem(KEY,JSON.stringify(U)); }catch(e){} };
-let mode='', lvl='', filter='all', line='', letter='', q='', shown=PAGE, toastT;
-function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2000); }
-
-function priceLabel(g){ return g.price ? `₹${g.price}` : 'Free'; }
-function statusOf(g){ return U.owned.includes(g.id) ? '<span class="status own">In my games</span>' : g.live ? '<span class="status live">Out now</span>' : '<span class="status soon">Coming soon</span>'; }
-function art(g, big){
-  const L=lineOf(g), t=`<span class="t">${esc(g.n)}</span>`;
-  if(g.cover) return `<div class="art" style="--lc:${L.color}"><img src="${esc(g.cover)}" alt="" loading="lazy">${t}</div>`;
-  if(g.art) return `<div class="art ${g.art}">${t}</div>`;
-  return `<div class="art a-auto" data-code="${g.code}" style="--lc:${L.color}">${t}</div>`;
-}
-function stn(g, prefix){ const L=lineOf(g);
-  return `<div class="stn${g.live?' on':''}" style="--lc:${L.color}"><span class="dot"></span>${prefix||''}${g.code}<span class="gen">${g.live?'Open now':'Under construction'}</span></div>`; }
-
-/* network map: every line gets a row; the row shows up to 3 stations (live first, then newest) and "+N more" */
-function renderNet(){
-  const live=GAMES.filter(g=>g.live).length;
-  $('netStats').textContent=`${LINES.length} lines · ${fmt(GAMES.length)} stations · ${fmt(live)} open`;
-  $('net').innerHTML = LINES.map(L=>{
-    const list=GAMES.filter(g=>lineOf(g).id===L.id);
-    const pick=[...list.filter(g=>g.live).reverse(), ...list.filter(g=>!g.live).reverse()];
-    const show = list.length<=4 ? list : pick.slice(0,3);
-    const extra = list.length - show.length;
-    const stops = show.map(g=>`<span class="st${g.live?' live':''}" data-game="${g.id}"><i></i><span>${esc(g.n)}</span></span>`).join('')
-      + (extra>0?`<span class="st more"><i></i><span>+${fmt(extra)} more</span></span>`:'')
-      + (list.length===0?`<span class="st"><i></i><span>Opening soon</span></span>`:'');
-    return `<button class="lrow" data-line="${L.id}" style="--lc:${L.color}">
-      <span class="lname"><span class="lbadge">${esc(L.code)}</span>${esc(L.name)}<small>${fmt(list.length)} station${list.length===1?'':'s'}</small></span>
-      <span class="trk">${stops}</span></button>`;
-  }).join('');
-}
-function renderBoard(){
-  const live=GAMES.filter(g=>g.live).sort((a,b)=>S(b.id).now-S(a.id).now);
-  const soon=GAMES.filter(g=>!g.live).sort((a,b)=>S(b.id).waiting-S(a.id).waiting);
-  const top=live.slice(0,5), max=Math.max(1,...top.map(g=>S(g.id).now));
-  const fill=soon.slice(0,Math.max(0,5-top.length));
-  const row=(g,i)=>{ const L=lineOf(g), s=S(g.id);
-    return g.live
-      ? `<button class="trow" data-game="${g.id}" style="--lc:${L.color}"><span class="rk">${i+1}</span><span class="nm"><span><span class="code">${g.code}</span>${esc(g.n)}</span><i class="bar" style="width:${Math.max(6,Math.round(s.now/max*100))}%"></i></span><span class="pl">${fmt(s.now)}<small>playing</small></span></button>`
-      : `<button class="trow soon" data-game="${g.id}" style="--lc:${L.color}"><span class="rk">·</span><span class="nm"><span><span class="code">${g.code}</span>${esc(g.n)}</span></span><span class="pl">Opens soon${s.waiting?`<small>${fmt(s.waiting)} waiting</small>`:''}</span></button>`; };
-  $('board').innerHTML = `<div class="bhead"><div><span class="livetag">Live now</span>${ST.demo?'<span class="demo">Demo numbers</span>':''}
-      <div class="big">${fmt(ST.online)}<small>playing now</small></div></div>
-      <div class="bstats"><div><b>${fmt(ST.today)}</b>played today</div><div><b>${fmt(live.length)}</b>games open</div></div></div>
-    <div class="btitle">Most popular right now</div>
-    ${top.map(row).join('')}${fill.map(g=>row(g)).join('')}
-    ${!GAMES.length?'<p class="sub">The first station opens soon.</p>':''}`;
-}
-function renderHappen(){
-  const thumb=g=>`<span class="th">${art(g)}</span>`;
-  const item=(g,val,sub)=>`<button class="titem" data-game="${g.id}">${thumb(g)}<span style="min-width:0"><b>${esc(g.n)}</b><small>${sub}</small></span><span class="val">${val}</span></button>`;
-  const live=GAMES.filter(g=>g.live);
-  const trending=[...live].sort((a,b)=>S(b.id).week-S(a.id).week).slice(0,3);
-  const fresh=[...GAMES].reverse().slice(0,3);
-  const next=GAMES.filter(g=>!g.live).sort((a,b)=>S(b.id).waiting-S(a.id).waiting).slice(0,3);
-  const mine=GAMES.filter(g=>U.owned.includes(g.id)).slice(-3).reverse();
-  const tiles=[
-    ['Trending this week','Fastest-growing games', trending.map(g=>item(g,`<span class="up">${S(g.id).week>=0?'▲':'▼'} ${Math.abs(S(g.id).week)}%</span>`,`${fmt(S(g.id).now)} playing now`)).join('') || '<p class="sub">Trending starts when more games open.</p>'],
-    ['New stations','Latest games on the network', fresh.map(g=>item(g, g.live?'<span class="livedot">Open</span>':'Soon', `${esc(lineOf(g).name)} · ${g.code}`)).join('')],
-    ['Coming next','Most-awaited games', next.map(g=>item(g, `${fmt(S(g.id).waiting)}`, 'people waiting')).join('') || '<p class="sub">Every game is open.</p>'],
-  ];
-  const friends=GAMES.filter(g=>modesOf(g).includes('multi')).sort((a,b)=>(b.live-a.live)||(S(b.id).now-S(a.id).now)).slice(0,3);
-  if(friends.length) tiles.push(['Play with friends','Multiplayer games', friends.map(g=>item(g, g.live?`<span class="livedot">${fmt(S(g.id).now)}</span>`:'Soon', modesOf(g).includes('single')?'Single + Multi':'Multiplayer only')).join('')]);
-  if(mine.length) tiles.unshift(['Continue playing','Your games', mine.map(g=>item(g, g.live?'<span class="livedot">Play</span>':'Soon', esc(g.genre))).join('')]);
-  $('happen').innerHTML = tiles.map(([h,sub,body])=>`<div class="tile stk"><h3>${h}${ST.demo&&h!=='New stations'&&h!=='Continue playing'&&h!=='Play with friends'?'<span class="demo">Demo</span>':''}</h3><p class="sub">${sub}</p>${body}</div>`).join('');
-}
-function renderBoarding(){
-  const live=GAMES.filter(g=>g.live), soon=GAMES.filter(g=>!g.live);
-  const now=live[live.length-1], next=soon[0];
-  $('boarding').innerHTML = now
-    ? `<span class="lamp">Now boarding</span><span>${esc(lineOf(now).name)} line · ${esc(now.n)}</span>${next?`<span class="dim">Next: ${esc(next.n)}</span>`:''}<button data-game="${now.id}">Board now</button>`
-    : `<span class="lamp">Opening soon</span><span>The first station opens soon</span>`;
-}
+/* Everything comes from games.js (games + lines) and stats.js (live player numbers, optional). No limit on games. */
+const LINES=(window.G9_LINES||[]).map(l=>({...l}));
+const LINE=Object.fromEntries(LINES.map(l=>[l.id,l]));
+const fallbackLine={id:'other',name:'Other',code:'X',color:'#7a7fa8'};
+const lineOf=g=>LINE[g.line]||fallbackLine;
+const statusOf=g=>g.status||(g.live?'open':'construction');
+const ORDER={open:0,boarding:1,construction:2};
+const GAMES=(window.G9_GAMES||[]).map(g=>({...g}));
+const perLine={};
+GAMES.forEach(g=>{ const L=lineOf(g); perLine[L.id]=(perLine[L.id]||0)+1; g.code=L.code+'-'+String(perLine[L.id]).padStart(2,'0'); g.n=g.name; g.st=statusOf(g); });
+const TOK='<svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>', TOK_LG='<svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>';
 const ICON={single:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2.5 14c0-3 2.4-5 5.5-5s5.5 2 5.5 5z" fill="currentColor"/></svg>',
   multi:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.6" fill="currentColor"/><circle cx="11" cy="5.6" r="2.2" fill="currentColor" opacity=".7"/><path d="M.8 14c0-2.7 2-4.6 4.7-4.6s4.7 1.9 4.7 4.6z" fill="currentColor"/><path d="M10.6 14c0-1.6-.5-3-1.4-3.9.6-.3 1.2-.4 1.8-.4 2.3 0 4.2 1.7 4.2 4.3z" fill="currentColor" opacity=".7"/></svg>'};
+
 const MODE_NAME={single:'Single player',multi:'Multiplayer'};
 const LEVELS=['Easy','Normal','Hard','Expert'];
+const STAT_NAME={open:'Open now',boarding:'Boarding soon',construction:'Under construction'};
 const modesOf=g=>(g.modes&&g.modes.length)?g.modes:['single'];
 const levelsOf=g=>(g.levels||[]).filter(l=>LEVELS.includes(l));
-function tags(g){
-  const m=modesOf(g), mt = m.includes('single')&&m.includes('multi') ? `<span class="tag">${ICON.multi}Single + Multi</span>` : m.includes('multi') ? `<span class="tag">${ICON.multi}Multiplayer</span>` : `<span class="tag">${ICON.single}Single</span>`;
-  const lv=levelsOf(g); return `<span class="tags">${mt}${lv.length?`<span class="tag lv lvl lvl-${lv[0]}" style="--lvc:var(--line)">${lv.length===1?lv[0]:lv[0]+' – '+lv[lv.length-1]}</span>`:''}</span>`;
+const PACKS=[
+  {t:100,p:19,gets:'A starter boost in any game'},
+  {t:550,p:99,b:'+10% bonus',gets:'Hire Chai Wala Dada in Chai Empire'},
+  {t:3000,p:499,b:'+20% bonus',gets:'Staff, decor and boosts across games',tag:'Most popular'},
+  {t:13000,p:1999,b:'+30% bonus',gets:'Weeks of upgrades on every line',tag:'Best value',best:true}
+];
+const PAGE=12;
+const fmt=n=>n.toLocaleString('en-IN');
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+const KEY='gametro9-store';
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const opensLabel=g=>{ const m=/^(\d{4})-(\d{2})/.exec(g.opens||''); return m?`Opens ${MONTHS[+m[2]-1]} ${m[1]}`:'Boarding soon'; };
+
+let U={name:'',tokens:0,watch:[],played:{}};
+try{ const r=localStorage.getItem(KEY); if(r){ const o=JSON.parse(r); U=Object.assign(U,o); if(Array.isArray(o.notify)) U.watch=[...new Set([...(U.watch||[]),...o.notify])]; if(Array.isArray(o.owned)) o.owned.forEach(id=>{ if(!U.played[id]) U.played[id]=1; }); } }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify({name:U.name,card:U.card,tokens:U.tokens,watch:U.watch,played:U.played})); }catch(e){} };
+let line='',mode='',lvl='',stat='',q='',shown=PAGE,toastT;
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2200); }
+const lastPlayed=()=>{ const e=Object.entries(U.played||{}).sort((a,b)=>b[1]-a[1])[0]; return e?e[0]:''; };
+
+/* live stats: only shown when stats.js has a real url */
+const CFG=Object.assign({url:'',refreshSeconds:30},window.G9_STATS_CONFIG||{});
+let ST=null;
+async function loadStats(){ if(!CFG.url) return; try{ const r=await fetch(CFG.url,{cache:'no-store'}); if(r.ok){ ST=await r.json(); renderBoard(); renderFeats(); renderGrid(); } }catch(e){} }
+const now=id=>ST&&ST.games&&ST.games[id]?ST.games[id].now||0:0;
+
+/* pieces */
+function art(g,cls=''){ const L=lineOf(g), t=`<span class="t">${esc(g.n)}</span>`;
+  if(g.cover) return `<div class="art ${cls}" style="--lc:${L.color}"><img src="${esc(g.cover)}" alt="" loading="lazy">${t}</div>`;
+  if(g.art) return `<div class="art ${g.art} ${cls}">${t}</div>`;
+  return `<div class="art a-auto ${cls}" data-code="${g.code}" style="--lc:${L.color}">${t}</div>`; }
+function stn(g,prefix=''){ const L=lineOf(g), sx=g.st==='boarding'?opensLabel(g):STAT_NAME[g.st];
+  return `<div class="stn ${g.st}" style="--lc:${L.color}"><span class="dot"></span>${prefix}${g.code}<span class="sx">${sx}</span></div>`; }
+function tags(g){ const m=modesOf(g), lv=levelsOf(g);
+  const mt=m.includes('single')&&m.includes('multi')?`<span class="tag">${ICON.multi}Single + Multi</span>`:m.includes('multi')?`<span class="tag">${ICON.multi}Multiplayer</span>`:`<span class="tag">${ICON.single}Single player</span>`;
+  return `<span class="tags">${mt}${lv.length?`<span class="tag lv">${lv.length===1?lv[0]:lv[0]+' – '+lv[lv.length-1]}</span>`:''}</span>`; }
+const priceLabel=g=>g.price?`₹${g.price}`:'Free';
+const PLAYI='<svg viewBox="0 0 20 20"><path d="M6 4l10 6-10 6z" fill="currentColor"/></svg>';
+const BELL='<svg viewBox="0 0 20 20" width="16" height="16"><path d="M10 3a5 5 0 0 0-5 5v3l-1.5 3h13L15 11V8a5 5 0 0 0-5-5zM8 16a2 2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>';
+function playLink(g,cls='btn'){ return g.play?`<a class="${cls}" href="${esc(g.play)}" target="_blank" rel="noopener" data-played="${g.id}">${PLAYI}Board ${esc(g.n)}${g.price?'':', free'}</a>`:''; }
+
+/* hero */
+function renderHero(){
+  const open=GAMES.filter(g=>g.st==='open');
+  const first=open.find(g=>g.id===lastPlayed())||open[0];
+  $('heroCta').innerHTML=(first?playLink(first,'btn big'):`<a class="btn big" href="#stations">See all stations</a>`)+`<a class="btn big alt" href="#card">Get your Gametro9 Card</a>`;
 }
+function renderBoard(){
+  const list=[...GAMES].sort((a,b)=>ORDER[a.st]-ORDER[b.st]||(b.st==='open'?now(b.id)-now(a.id):0));
+  const rows=list.slice(0,6);
+  const t=new Date(), clock=t.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false});
+  $('board').innerHTML=`<div class="bhead"><b>Departures</b><span class="clock">${clock}</span></div>`+
+    rows.map((g,i)=>{ const L=lineOf(g);
+      const right=g.st==='open'?(ST&&now(g.id)?`${fmt(now(g.id))} playing`:'Boarding now'):g.st==='boarding'?opensLabel(g):'In construction';
+      return `<button class="drow" data-game="${g.id}" style="--lc:${L.color};animation-delay:${i*70}ms"><span class="code">${g.code}</span><span class="nm">${esc(g.n)}<small>${esc(L.name)} line</small></span><span class="st ${g.st}">${right}</span></button>`; }).join('')+
+    `<div class="bfoot"><span>${fmt(GAMES.length)} stations · ${fmt(LINES.length)} lines${ST&&ST.online?` · ${fmt(ST.online)} playing now`:''}</span><button data-jump="stations">Full timetable</button></div>`;
+}
+function renderFeats(){
+  const open=GAMES.filter(g=>g.st==='open');
+  $('openTitle').textContent=open.length===1?'Ready to board':`${open.length} games ready to board`;
+  $('feats').innerHTML=open.length?open.map(g=>{ const L=lineOf(g);
+    return `<article class="feat stk">${art(g)}<div class="info">
+      <div class="lb"><span class="mk badge" style="--lc:${L.color};min-width:30px;height:24px">${esc(L.code)}</span>${g.code} · ${esc(L.name)} line</div>
+      <h3>${esc(g.n)}</h3><p class="hook">${esc(g.tagline||g.genre)}</p>${tags(g)}
+      <div class="facts"><span><i></i>${ST&&now(g.id)?`${fmt(now(g.id))} playing now`:'Open now'}</span><span>${priceLabel(g)} to play</span><span>Plays in your browser</span></div>
+      <div class="acts">${playLink(g)}<button class="btn alt" data-game="${g.id}">Station details</button></div></div></article>`; }).join('')
+    :`<div class="none"><b>The first station opens soon</b>Watch a station below and it'll show up in My trips.</div>`;
+}
+/* network map */
+function renderNet(){
+  const open=GAMES.filter(g=>g.st==='open').length, here=lastPlayed();
+  $('netStats').textContent=`${fmt(LINES.length)} lines · ${fmt(GAMES.length)} stations · ${fmt(open)} open now. Tap a line to see every stop.`;
+  $('net').innerHTML=LINES.map(L=>{
+    const list=GAMES.filter(g=>lineOf(g).id===L.id);
+    const pick=[...list].sort((a,b)=>ORDER[a.st]-ORDER[b.st]);
+    const show=list.length<=4?list:pick.slice(0,3), extra=list.length-show.length;
+    const anyOpen=list.some(g=>g.st==='open');
+    const stops=show.map(g=>`<button class="st ${g.st}" data-game="${g.id}" title="${esc(g.n)} · ${esc(STAT_NAME[g.st])}">${g.id===here?'<span class="here">You are here</span>':''}<i></i><span>${esc(g.n)}</span></button>`).join('')
+      +(extra>0?`<button class="st more" data-line="${L.id}"><i></i><span>+${fmt(extra)} more</span></button>`:'')
+      +(list.length===0?`<span class="st construction"><i></i><span>Opening soon</span></span>`:'');
+    return `<div class="lrow" style="--lc:${L.color}"><button class="lname" data-line="${L.id}" style="border:0;background:none;width:100%;padding:0;color:inherit;text-align:left"><span class="lbadge">${esc(L.code)}</span><b>${esc(L.name)}</b><small>${anyOpen?`${list.filter(g=>g.st==='open').length} open · `:''}${fmt(list.length)} station${list.length===1?'':'s'} ›</small></button>
+      <div class="trk${anyOpen?'':' dash'}">${anyOpen?'<span class="train" aria-hidden="true"></span>':''}${stops}</div></div>`;
+  }).join('');
+}
+/* pickers */
+const CARET='';
 function lineMark(L){ return `<span class="mk badge" style="--lc:${L.color}">${esc(L.code)}</span>`; }
 function lvlMark(v){ return `<span class="mk ldot lvl lvl-${v}"></span>`; }
 function modeMark(v){ return `<span class="mk ico">${ICON[v]}</span>`; }
-function renderChips(){
+function statMark(v){ const c={open:'var(--open)',boarding:'var(--board)',construction:'var(--build)'}[v]; return `<span class="mk ldot" style="--lvc:${c}"></span>`; }
+function renderPickers(){
   const L=LINE[line];
-  $('ddLineV').innerHTML = L ? `${lineMark(L)}<span>${esc(L.name)}</span>` : '<span>All lines</span>';
-  $('ddLine').classList.toggle('on',!!line);
-}
-function renderModeChips(){
-  $('ddModeV').innerHTML = mode ? `${modeMark(mode)}<span>${mode==='single'?'Single':'Multi'}</span>` : '<span>Any</span>';
-  $('ddLvlV').innerHTML = lvl ? `${lvlMark(lvl)}<span>${lvl}</span>` : '<span>Any level</span>';
-  $('ddMode').classList.toggle('on',!!mode); $('ddLvl').classList.toggle('on',!!lvl);
+  $('ddLineV').innerHTML=L?`${lineMark(L)}<span>${esc(L.name)}</span>`:'<span>All lines</span>';
+  $('ddStatV').innerHTML=stat?`${statMark(stat)}<span>${STAT_NAME[stat]}</span>`:'<span>Any status</span>';
+  $('ddModeV').innerHTML=mode?`${modeMark(mode)}<span>${mode==='single'?'Single':'Multi'}</span>`:'<span>Any</span>';
+  $('ddLvlV').innerHTML=lvl?`${lvlMark(lvl)}<span>${lvl}</span>`:'<span>Any level</span>';
+  $('ddLine').classList.toggle('on',!!line); $('ddStat').classList.toggle('on',!!stat); $('ddMode').classList.toggle('on',!!mode); $('ddLvl').classList.toggle('on',!!lvl);
 }
 function openPicker(kind){
-  let title, items, cur;
+  let title,items,cur; const all={v:'',n:GAMES.length};
   if(kind==='line'){ title='Choose a line'; cur=line;
-    items=[{v:'',t:'All lines',sub:'Every station on the network',n:GAMES.length,mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>'}]
+    items=[{...all,t:'All lines',sub:'Every station on the network',mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>'}]
       .concat(LINES.map(L=>({v:L.id,t:L.name,sub:`Line ${L.code}`,n:GAMES.filter(g=>lineOf(g).id===L.id).length,mk:lineMark(L)}))); }
+  else if(kind==='stat'){ title='Which stations?'; cur=stat;
+    const SUB={open:'Play right now',boarding:'Launching soon',construction:'Still being built'};
+    items=[{...all,t:'Any status',sub:'Every station',mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg></span>'}]
+      .concat(['open','boarding','construction'].map(v=>({v,t:STAT_NAME[v],sub:SUB[v],n:GAMES.filter(g=>g.st===v).length,mk:statMark(v)}))); }
   else if(kind==='mode'){ title='How do you want to play?'; cur=mode;
-    items=[{v:'',t:'Any',sub:'All games',n:GAMES.length,mk:'<span class="mk ico">'+ICON.multi+'</span>'},
+    items=[{...all,t:'Any',sub:'All games',mk:'<span class="mk ico">'+ICON.multi+'</span>'},
       {v:'single',t:'Single player',sub:'Play on your own',n:GAMES.filter(g=>modesOf(g).includes('single')).length,mk:modeMark('single')},
       {v:'multi',t:'Multiplayer',sub:'Play with friends and other players',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
   else { title='Pick a level'; cur=lvl;
     const SUB={Easy:'Relaxed, good for beginners',Normal:'The standard challenge',Hard:'For experienced players',Expert:'Only for the best'};
-    items=[{v:'',t:'Any level',sub:'All games',n:GAMES.length,mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V5M13 13V2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>'}]
+    items=[{...all,t:'Any level',sub:'All games',mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V5M13 13V2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>'}]
       .concat(LEVELS.filter(v=>GAMES.some(g=>levelsOf(g).includes(v))).map(v=>({v,t:v,sub:SUB[v],n:GAMES.filter(g=>levelsOf(g).includes(v)).length,mk:lvlMark(v)}))); }
   openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Filter</div><h3>${title}</h3></div>
     <div class="plist" role="radiogroup" aria-label="${title}">${items.map(it=>`<button class="popt" role="radio" aria-checked="${it.v===cur}" data-pick="${kind}:${esc(it.v)}">${it.mk}<span class="lab2">${esc(it.t)}<small>${esc(it.sub)}</small></span><span class="cnt">${fmt(it.n)}</span></button>`).join('')}</div></div>`);
 }
-function renderAZ(){
-  const have=new Set(GAMES.map(g=>g.n[0].toUpperCase()));
-  $('az').innerHTML='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(L=>
-    `<button class="${have.has(L)?'has':''}" data-l="${have.has(L)?L:''}" aria-pressed="${letter===L}" ${have.has(L)?'':'disabled aria-disabled="true"'}>${L}</button>`).join('');
-}
-function matches(){
-  const qq=q.trim().toLowerCase();
-  return GAMES.filter(g=>(filter==='all'||(filter==='live'?g.live:!g.live))
-    && (!line||lineOf(g).id===line) && (!mode||modesOf(g).includes(mode)) && (!lvl||levelsOf(g).includes(lvl)) && (!letter||g.n[0].toUpperCase()===letter)
-    && (!qq||g.n.toLowerCase().includes(qq)||g.genre.toLowerCase().includes(qq)||g.code.toLowerCase()===qq));
-}
+/* grid */
+function matches(){ const qq=q.trim().toLowerCase();
+  return GAMES.filter(g=>(!line||lineOf(g).id===line)&&(!stat||g.st===stat)&&(!mode||modesOf(g).includes(mode))&&(!lvl||levelsOf(g).includes(lvl))
+    &&(!qq||[g.n,g.genre,g.tagline,lineOf(g).name,g.code].some(x=>String(x||'').toLowerCase().includes(qq))))
+    .sort((a,b)=>ORDER[a.st]-ORDER[b.st]); }
+function cardHTML(g){ const L=lineOf(g), w=(U.watch||[]).includes(g.id);
+  const act=g.st==='open'?`<span class="act">${PLAYI.replace('<svg','<svg width="14" height="14"')}Play</span>`:g.st==='boarding'?`<span class="act">${BELL}${w?'Watching':'Watch'}</span>`:`<span class="act">In construction</span>`;
+  return `<button class="card stk ${g.st}" data-game="${g.id}" style="--lc:${L.color}">${stn(g)}<span class="price">${priceLabel(g)}</span>${art(g)}
+    <div class="body"><h4>${esc(g.n)}</h4><p class="hook">${esc(g.tagline||g.genre)}</p>${tags(g)}
+      <div class="foot">${g.st==='open'&&ST&&now(g.id)?`<span class="live">${fmt(now(g.id))} playing</span>`:`<span class="tag" style="background:none;padding:0;color:var(--ink-2)">${esc(g.genre)}</span>`}${act}</div></div></button>`; }
 function renderGrid(){
-  const list=matches();
-  const live=GAMES.filter(g=>g.live).length;
-  $('countLine').textContent = `${fmt(live)} out now, ${fmt(GAMES.length-live)} on the way`+(list.length!==GAMES.length?` · showing ${fmt(list.length)}`:'');
-  $('grid').innerHTML = list.length ? list.slice(0,shown).map(g=>`
-    <button class="card stk" data-game="${g.id}">
-      ${stn(g)}${art(g)}
-      <div class="body"><div class="genre">${esc(g.genre)}${g.live&&S(g.id).now?` · <span class="livedot">${fmt(S(g.id).now)} playing</span>`:''}</div>
-        ${tags(g)}<div class="foot"><span class="price">${priceLabel(g)}</span>${statusOf(g)}</div></div>
-    </button>`).join('') : '<p class="none">No games match. Try another search, line, play mode, level or letter.</p>';
-  const act=[line&&lineOf({line}).name, mode&&MODE_NAME[mode], lvl, q.trim()&&`"${q.trim()}"`, filter!=='all'&&(filter==='live'?'Out now':'Coming soon')].filter(Boolean);
-  $('clearRow').hidden=!act.length; $('filterNote').textContent=`${fmt(list.length)} game${list.length===1?'':'s'} · ${act.join(' · ')}`;
-  $('moreWrap').hidden = list.length<=shown;
+  const list=matches(), open=GAMES.filter(g=>g.st==='open').length;
+  $('countLine').textContent=`${fmt(open)} open now · ${fmt(GAMES.filter(g=>g.st==='boarding').length)} boarding soon · ${fmt(GAMES.filter(g=>g.st==='construction').length)} under construction`;
+  $('grid').innerHTML=list.length?list.slice(0,shown).map(cardHTML).join('')
+    :`<div class="none"><b>No station by that name</b>Try another word, or clear the filters to see every line.</div>`;
+  const act=[line&&lineOf({line}).name,stat&&STAT_NAME[stat],mode&&MODE_NAME[mode],lvl,q.trim()&&`"${q.trim()}"`].filter(Boolean);
+  $('clearRow').hidden=!act.length; $('filterNote').textContent=`${fmt(list.length)} station${list.length===1?'':'s'} · ${act.join(' · ')}`;
+  $('moreWrap').hidden=list.length<=shown;
   if(list.length>shown) $('moreBtn').textContent=`Show more stations (${fmt(list.length-shown)} left)`;
 }
+/* card + packs */
 function renderPacks(){
-  $('packs').innerHTML = PACKS.map((p,i)=>`
-    <div class="pack stk">${p.best?'<span class="flag">Best value</span>':''}
+  $('packs').innerHTML=PACKS.map((p,i)=>`<div class="fare stk${p.best?' best':''}">${p.tag?`<span class="flag">${p.tag}</span>`:''}
       <div class="amt">${TOK_LG}${fmt(p.t)}</div>
-      <div class="bonus">${p.b||''}</div>
-      <button class="btn" data-pack="${i}">₹${fmt(p.p)}</button>
-    </div>`).join('');
+      <div class="gets">${esc(p.gets)}</div>
+      <div class="unit">₹${(p.p/p.t*100).toFixed(1).replace('.0','')} per 100 Tokens${p.b?` · <span class="bonus">${p.b}</span>`:''}</div>
+      <button class="btn" data-pack="${i}">₹${fmt(p.p)}</button></div>`).join('')+
+    `<p class="paynote">UPI, cards and net banking · Prices include GST · Recharge opens with launch</p>`;
 }
-function renderLib(){
-  const own=GAMES.filter(g=>U.owned.includes(g.id));
-  $('lib').innerHTML = own.length ? `<div class="lib">${own.map(g=>`
-    <div class="item stk">${art(g)}
-      <div class="lrow2" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px"><b>${esc(g.n)}</b>${g.live&&g.play?`<a class="btn small" href="${esc(g.play)}" target="_blank" rel="noopener">Play</a>`:'<span class="status soon">Soon</span>'}</div></div>`).join('')}</div>`
-    : `<div class="empty">No games yet. Add a game that's out now to start your first trip.</div>`;
+/* trips */
+function renderTrips(){
+  const played=Object.keys(U.played||{}).map(id=>GAMES.find(g=>g.id===id)).filter(Boolean).sort((a,b)=>U.played[b.id]-U.played[a.id]);
+  const watch=(U.watch||[]).map(id=>GAMES.find(g=>g.id===id)).filter(g=>g&&!played.includes(g));
+  const open=GAMES.find(g=>g.st==='open');
+  if(!played.length&&!watch.length){
+    $('lib').innerHTML=`<div class="empty stk"><div class="route" aria-hidden="true"><i></i></div><div><div class="eyebrow">Platform 1</div><h3>Your journey starts here</h3>
+      <p>Play any open game and it shows up here with your last stop. Watch upcoming stations to keep them handy.</p>${open?playLink(open):''}</div></div>`; return; }
+  const trip=(g,sub)=>`<button class="trip stk" data-game="${g.id}">${art(g)}<span style="min-width:0"><b>${esc(g.n)}</b><small>${sub}</small></span></button>`;
+  $('lib').innerHTML=`<div class="trips">${played.map(g=>trip(g,`${g.code} · ${g.id===lastPlayed()?'Last stop':'Played'}`)).join('')}${watch.map(g=>trip(g,`${g.code} · Watching · ${g.st==='boarding'?opensLabel(g):STAT_NAME[g.st]}`)).join('')}</div>`;
 }
-function renderTop(){
-  $('bal').textContent=fmt(U.tokens); $('cardBal').textContent=fmt(U.tokens); $('cardName').textContent=U.name||'Guest rider';
-  $('signBtn').textContent = U.name ? U.name.split(' ')[0] : 'Sign in';
-}
-function renderAll(){ renderBoard(); renderHappen(); renderNet(); renderBoarding(); renderChips(); renderModeChips(); renderGrid(); renderPacks(); renderLib(); renderTop(); }
+function renderTop(){ $('bal').textContent=fmt(U.tokens); $('cardBal').textContent=fmt(U.tokens); $('cardName').textContent=U.name||'Your name here'; const cw=document.querySelector('.mcard .who span:last-child'); if(cw) cw.textContent=U.card?('•••• '+U.card.slice(-4)):'All lines'; $('signBtn').textContent=U.name?U.name.split(' ')[0]:'Get card'; }
+function renderAll(){ renderHero(); renderBoard(); renderFeats(); renderNet(); renderPickers(); renderGrid(); renderPacks(); renderTrips(); renderTop(); }
 
-/* dialogs */
-/* every popup locks the page behind it, so the background never moves */
+/* dialogs: every popup locks the page behind it */
 function lockPage(on){ document.documentElement.classList.toggle('locked',on); document.body.classList.toggle('locked',on); }
 function openDlg(html){ $('dlg').innerHTML='<button class="x" data-close aria-label="Close">✕</button>'+html; $('scrim').hidden=false; $('dlg').scrollTop=0; lockPage(true); }
-function closeDlg(){ $('scrim').hidden=true; lockPage(false); }
+function closeDlg(){ $('scrim').hidden=true; lockPage(!!document.getElementById('ob')); }
 $('scrim').addEventListener('touchmove',e=>{ if(!e.target.closest('.dlg')) e.preventDefault(); },{passive:false});
-function linePage(id){
-  const L=LINE[id]; if(!L) return; const list=GAMES.filter(g=>lineOf(g).id===id);
-  openDlg(`<div class="in" style="--lc:${L.color}"><div class="eyebrow">Line ${esc(L.code)}</div><h3>${esc(L.name)}</h3>
-    <p style="color:var(--ink-2);margin:6px 0 0">${fmt(list.length)} station${list.length===1?'':'s'} · ${fmt(list.filter(g=>g.live).length)} open now</p>
-    ${list.length?`<div class="route">${list.map(g=>`<button class="rstop${g.live?' live':''}" data-game="${g.id}"><span class="code">${g.code}</span><b>${esc(g.n)}</b>${statusOf(g)}</button>`).join('')}</div>`:'<p class="note">No stations on this line yet.</p>'}</div>`);
-}
-function howTo(g){
-  const m=modesOf(g), lv=levelsOf(g);
+function linePage(id){ const L=LINE[id]; if(!L) return; const list=GAMES.filter(g=>lineOf(g).id===id);
+  openDlg(`<div class="pick"><div class="phead" style="--lc:${L.color}"><div class="eyebrow">Line ${esc(L.code)}</div><h3>${esc(L.name)}</h3><p style="margin:6px 0 0;color:var(--sign-dim);font-weight:600">${fmt(list.length)} station${list.length===1?'':'s'} · ${fmt(list.filter(g=>g.st==='open').length)} open now</p></div>
+    <div class="in" style="--lc:${L.color}">${list.length?`<div class="route">${list.map(g=>`<button class="rstop ${g.st}" data-game="${g.id}"><span class="code">${g.code}</span><b>${esc(g.n)}</b><span class="pill ${g.st}">${g.st==='boarding'?opensLabel(g):STAT_NAME[g.st]}</span></button>`).join('')}</div>`:'<p class="note">No stations on this line yet.</p>'}</div></div>`); }
+function howTo(g){ const m=modesOf(g), lv=levelsOf(g);
   return `<div class="howto"><span class="k">Play</span><span class="tags">${['single','multi'].map(k=>`<span class="tag${m.includes(k)?'':' no'}">${ICON[k]}${MODE_NAME[k]}</span>`).join('')}</span>
-    <span class="k">Levels</span><span class="tags">${lv.length?lv.map(L=>`<span class="tag lv lvl lvl-${L}">${L}</span>`).join(''):'<span style="color:var(--ink-2);font-weight:600;font-size:14px">One level for everyone</span>'}</span></div>`;
-}
-function gamePage(id){
-  const g=GAMES.find(g=>g.id===id); if(!g) return; const own=U.owned.includes(id), L=lineOf(g);
-  let main;
-  if(own && g.live) main=g.play?`<a class="btn" href="${esc(g.play)}" target="_blank" rel="noopener">Play now</a>`:`<button class="btn" disabled>Opening soon</button>`;
-  else if(own) main=`<button class="btn" disabled>In my games</button>`;
-  else if(!g.live) main = U.notify.includes(id) ? `<button class="btn" disabled>We will notify you</button>` : `<button class="btn" data-notify="${id}">Notify me at launch</button>`;
-  else main = g.price ? `<button class="btn" data-buygame="${id}">Buy for ₹${g.price}</button>` : `<button class="btn" data-get="${id}">Get free</button>`;
+    <span class="k">Levels</span><span class="tags">${lv.length?lv.map(L=>`<span class="tag lvx lvl lvl-${L}">${L}</span>`).join(''):'<span style="color:var(--ink-2);font-weight:600;font-size:14px">One level for everyone</span>'}</span></div>`; }
+function gamePage(id){ const g=GAMES.find(x=>x.id===id); if(!g) return; const L=lineOf(g), w=(U.watch||[]).includes(id);
+  const main=g.st==='open'?playLink(g):g.st==='boarding'?`<button class="btn" data-watch="${id}">${BELL}${w?'Watching':'Watch this station'}</button>`:`<button class="btn" data-watch="${id}">${w?'Watching':'Watch progress'}</button>`;
   openDlg(`${stn(g,'Station ')}${art(g)}<div class="in">
     <div class="eyebrow">${esc(L.name)} line · ${esc(g.genre)} · ${priceLabel(g)}</div>
-    <h3>${esc(g.n)}</h3>${g.live?`<p class="livedot" style="margin:8px 0 0">${fmt(S(id).now)} playing now · ${fmt(S(id).today)} today${ST.demo?' (demo)':''}</p>`:(S(id).waiting?`<p style="margin:8px 0 0;font-weight:700;color:var(--ink-2)">${fmt(S(id).waiting)} people waiting${ST.demo?' (demo)':''}</p>`:'')}<p>${esc(g.about||'')}</p>
-    ${howTo(g)}${(g.buys&&g.buys.length)?`<p style="margin:12px 0 0;font-weight:800">What Tokens buy in this game</p><ul>${g.buys.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>`:''}
-    <div class="acts">${main}<a class="btn alt" href="#tokens" data-close>Recharge card</a></div>
-    <p class="note">Android only at launch. Your Tokens and progress stay on your Gametro Card.</p></div>`);
-}
-function checkout(kind, ref){
-  if(!U.name){ signIn(()=>checkout(kind,ref)); return; }
-  const g = kind==='game' ? GAMES.find(x=>x.id===ref) : null;
-  const price = kind==='pack' ? PACKS[ref].p : g.price;
-  const what = kind==='pack' ? `${fmt(PACKS[ref].t)} Tokens` : g.n;
-  const gst = Math.round(price - price/1.18);
-  openDlg(`<div class="in"><div class="eyebrow">${kind==='pack'?'Recharge your card':'Checkout'}</div><h3>${esc(what)}</h3>
-    <div class="paylist">
-      <label><input type="radio" name="pay" id="pay-upi" checked> UPI (GPay, PhonePe, Paytm)</label>
-      <label><input type="radio" name="pay" id="pay-card"> Debit or credit card</label>
-      <label><input type="radio" name="pay" id="pay-nb"> Net banking</label>
-    </div>
-    <div style="margin-top:14px"><div class="sum"><span>Price</span><span>₹${fmt(price-gst)}</span></div>
-      <div class="sum"><span>GST (18%, included)</span><span>₹${fmt(gst)}</span></div>
-      <div class="sum total"><span>Total</span><span>₹${fmt(price)}</span></div></div>
-    <p class="note">Test mode. On the live site this button opens the payment gateway. Here it completes instantly and nothing is charged.</p>
-    <div class="acts"><button class="btn" data-pay="${kind}:${ref}">Pay ₹${fmt(price)} (test)</button><button class="btn alt" data-close>Cancel</button></div></div>`);
-}
+    <h3>${esc(g.n)}</h3><p class="hook">${esc(g.tagline||'')}</p>
+    ${g.st==='open'&&ST&&now(id)?`<p style="margin:8px 0 0;font-weight:800;color:var(--open)">${fmt(now(id))} playing now</p>`:''}
+    <p>${esc(g.about||'')}</p>${howTo(g)}
+    ${(g.buys&&g.buys.length)?`<p style="margin:14px 0 0;font-weight:800">What Tokens buy here</p><ul>${g.buys.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>`:''}
+    <div class="acts">${main}<a class="btn alt" href="#card" data-close>Gametro9 Card</a></div>
+    ${g.st!=='open'?`<p class="note">${g.st==='boarding'?'This station is launching soon.':'This station is still being built.'} Watching keeps it in My trips on this phone.</p>`:''}</div>`); }
+function packPage(i){ const p=PACKS[i];
+  openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Recharge</div><h3>${fmt(p.t)} Tokens · ₹${fmt(p.p)}</h3></div><div class="in">
+    <p style="margin:4px 0 0;font-size:17px;font-weight:600">${esc(p.gets)}.</p>
+    <p class="note">Recharge opens when payments go live at launch. You'll pay with UPI, cards or net banking, and the price includes GST. Until then, every open game is free to play.</p>
+    <div class="acts">${(()=>{const g=GAMES.find(x=>x.st==='open'); return g?playLink(g):'';})()}<button class="btn alt" data-close>Close</button></div></div></div>`); }
 let afterSign=null;
-function signIn(next){
-  afterSign=next||null;
-  openDlg(`<div class="in"><div class="eyebrow">Gametro9 account</div><h3>Sign in</h3>
-    <p style="color:var(--ink-2);margin:6px 0 0">One account for the site and every game.</p>
-    <form id="signForm"><label class="field">Your name<input id="nm" autocomplete="name" required placeholder="e.g. Harkishansingh"></label>
-    <label class="field">Phone number<input id="ph" inputmode="tel" required placeholder="10-digit mobile"></label>
-    <div class="acts"><button class="btn" type="submit">Continue</button></div></form>
-    <p class="note">Sample only. The live site will send an OTP to verify the number.</p></div>`);
-  $('signForm').addEventListener('submit',e=>{ e.preventDefault(); U.name=$('nm').value.trim()||'Player'; save(); renderTop(); toast(`Signed in as ${U.name}`); closeDlg(); if(afterSign){ const f=afterSign; afterSign=null; f(); } });
-  setTimeout(()=>$('nm').focus(),50);
-}
-const PAGES = {
-  about:['About Gametro9','An independent game studio making original mobile games. Every game is a station, every kind of game has its own line, and one Gametro Card holds your Tokens for all of them.'],
-  privacy:['Privacy policy','Draft placeholder. The live site will explain what data is collected (name, phone, purchases, game progress), why, how long it is kept, and how to delete your account.'],
-  terms:['Terms of use','Draft placeholder. Tokens are a licence to use in-game items. They have no cash value and cannot be withdrawn, transferred or sold.'],
-  refund:['Refund policy','Draft placeholder. Unused Tokens can be refunded within 7 days of purchase. Contact support with your order number.'],
+function signIn(next){ afterSign=next||null;
+  const has=!!(U.name&&U.card);
+  openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Gametro9 Card</div><h3>${has?'Your card':'Create your card'}</h3>${has?`<p style="margin:6px 0 0;font-family:var(--f-sign);color:var(--sun);font-weight:700">${esc(U.card)}</p>`:''}</div><div class="in">
+    <p style="margin:4px 0 0;color:var(--ink-2)">${has?'Your card is saved on this phone. Copy your backup code and keep it somewhere safe (for example, send it to yourself on WhatsApp). It moves your card to a new phone.':'Your card holds your Tokens and progress. It is saved on this phone. No phone number needed.'}</p>
+    <form id="signForm"><label class="field">Name on card<input id="nm" autocomplete="name" required minlength="2" maxlength="24" placeholder="e.g. Harkishansingh" value="${esc(U.name)}"></label>
+    <div class="acts"><button class="btn" type="submit">${has?'Save name':'Create my card'}</button></div></form>
+    ${has?`<label class="field" style="margin-top:18px">Backup code<textarea id="bk" readonly rows="3" style="font:inherit;font-size:12.5px;border:2.5px solid var(--edge);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;resize:none">${esc(backupCode())}</textarea></label>
+    <div class="acts"><button class="btn alt" type="button" id="cpy">Copy backup code</button><button class="btn alt" type="button" id="rst">Restore a card</button></div>
+    <div class="acts"><button class="btn alt" type="button" id="out" style="border-color:var(--coral);color:var(--coral)">${inApp()?'Sign out':'Remove card from this phone'}</button></div>
+    <p class="note">Signing out removes the card from this phone. Copy your backup code first, or your Tokens and progress can't be brought back.</p>`
+    :`<p style="margin:14px 0 0;font-size:14px;color:var(--ink-2)">Have a backup code? <button class="lnk" type="button" id="rst" style="color:var(--coral)">Restore your card</button></p>`}</div></div>`);
+  $('signForm').addEventListener('submit',e=>{ e.preventDefault(); const v=$('nm').value.trim(); if(v.length<2) return; U.name=v; U.card=U.card||newCardId(); save(); OB.card=U.card; saveOB(); renderTop(); closeDlg(); toast(has?'Saved':`Card ready, ${v.split(' ')[0]}`); if(afterSign){ const f=afterSign; afterSign=null; f(); } });
+  const c=$('cpy'); if(c) c.onclick=async()=>{ const ok=await copyText(backupCode()); if(!ok){ const t=$('bk'); t.focus(); t.select(); } toast(ok?'Backup code copied':'Code selected. Tap Copy.'); };
+  const r=$('rst'); if(r) r.onclick=()=>{ openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Gametro9 Card</div><h3>Restore your card</h3></div><div class="in">
+      <form id="rf"><label class="field">Backup code<textarea id="rc" rows="4" required style="font:inherit;font-size:13px;border:2.5px solid var(--edge);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px" placeholder="G9CARD-…"></textarea></label>
+      <p class="note" id="rerr">This replaces the card on this phone with the restored one.</p><div class="acts"><button class="btn" type="submit">Restore card</button></div></form></div></div>`);
+    $('rf').addEventListener('submit',e=>{ e.preventDefault(); if(restoreFrom($('rc').value)){ renderAll(); closeDlg(); toast(`Welcome back, ${U.name.split(' ')[0]}`); } else $('rerr').textContent="That code doesn't look right. Copy the whole code and try again."; }); };
+  const o=$('out'); if(o) o.onclick=()=>{ U={name:'',card:'',tokens:0,watch:[],played:{}}; save(); OB.card=''; saveOB(); renderAll(); closeDlg(); if(inApp()) obNext(); else toast('Card removed from this phone'); };
+  setTimeout(()=>{ if(!U.name) $('nm').focus(); },60); }
+const PAGES={
+  about:['About Gametro9','An independent studio making original games for your phone. Every game is a station, every kind of game has its own line, and one Gametro9 Card carries your Tokens across all of them.'],
+  privacy:['Privacy policy','Your Gametro9 Card (name, Tokens, game progress) is stored only on your device. We do not collect phone numbers, emails or contacts, and nothing is sent to a server. Removing the card from your phone deletes it; your backup code is the only copy you control.'],
+  terms:['Terms of use','Draft. Tokens are a licence to use in-game items. They have no cash value and cannot be withdrawn, transferred or sold.'],
+  refund:['Refund policy','Draft. The refund policy for unused Tokens will be published before recharge opens.'],
 };
 
 /* events */
-document.addEventListener('click',e=>{
-  const t=e.target;
+document.addEventListener('click',e=>{ const t=e.target;
+  const ins=t.closest('[data-install]'); if(ins){ installApp(); return; }
+  const pl=t.closest('[data-played]'); if(pl){ U.played=U.played||{}; U.played[pl.dataset.played]=Date.now(); save(); setTimeout(()=>{ renderNet(); renderTrips(); renderHero(); },50); return; }
   if(t.closest('[data-close]')){ closeDlg(); return; }
+  const jp=t.closest('[data-jump]'); if(jp){ document.getElementById(jp.dataset.jump).scrollIntoView(); return; }
+  const dd=t.closest('[data-dd]'); if(dd){ openPicker(dd.dataset.dd); return; }
+  const pk=t.closest('[data-pick]'); if(pk){ const [k,v]=pk.dataset.pick.split(':'); if(k==='line') line=v; else if(k==='stat') stat=v; else if(k==='mode') mode=v; else lvl=v; shown=PAGE; renderPickers(); renderGrid(); closeDlg(); return; }
   const g=t.closest('[data-game]'); if(g){ gamePage(g.dataset.game); return; }
   const ln=t.closest('[data-line]'); if(ln){ linePage(ln.dataset.line); return; }
-  const p=t.closest('[data-pack]'); if(p){ checkout('pack',+p.dataset.pack); return; }
-  const bg=t.closest('[data-buygame]'); if(bg){ checkout('game',bg.dataset.buygame); return; }
-  const get=t.closest('[data-get]'); if(get){ const id=get.dataset.get;
-    const add=()=>{ if(!U.owned.includes(id)) U.owned.push(id); save(); renderAll(); gamePage(id); toast('Added to my games'); };
-    if(!U.name){ signIn(add); return; } add(); return; }
-  const nt=t.closest('[data-notify]'); if(nt){ if(!U.notify.includes(nt.dataset.notify)) U.notify.push(nt.dataset.notify); save(); gamePage(nt.dataset.notify); toast('We will tell you when it opens'); return; }
-  const pay=t.closest('[data-pay]'); if(pay){ const [k,r]=pay.dataset.pay.split(':');
-    if(k==='pack'){ U.tokens+=PACKS[+r].t; toast(`+${fmt(PACKS[+r].t)} Tokens on your card`); closeDlg(); }
-    else { if(!U.owned.includes(r)) U.owned.push(r); toast('Bought. It is in my games.'); gamePage(r); }
-    save(); renderAll(); return; }
-  const pg=t.closest('[data-page]'); if(pg){ const [h,b]=PAGES[pg.dataset.page]; openDlg(`<div class="in"><h3>${h}</h3><p>${b}</p></div>`); return; }
-  const dd=t.closest('[data-dd]'); if(dd){ openPicker(dd.dataset.dd); return; }
-  const pk=t.closest('[data-pick]'); if(pk){ const [k,v]=pk.dataset.pick.split(':'); if(k==='line') line=v; else if(k==='mode') mode=v; else lvl=v; shown=PAGE; renderChips(); renderModeChips(); renderGrid(); closeDlg(); return; }
-  const mf=t.closest('[data-mf]'); if(mf){ mode=mf.dataset.mf; shown=PAGE; renderModeChips(); renderGrid(); return; }
-  const lvf=t.closest('[data-lvf]'); if(lvf){ lvl=lvf.dataset.lvf; shown=PAGE; renderModeChips(); renderGrid(); return; }
-  const lf=t.closest('[data-lf]'); if(lf){ line=lf.dataset.lf; shown=PAGE; renderChips(); renderGrid(); return; }
-  const l=t.closest('[data-l]'); if(l && l.dataset.l){ letter = letter===l.dataset.l ? '' : l.dataset.l; shown=PAGE; renderAZ(); renderGrid(); return; }
-  const f=t.closest('[data-f]'); if(f){ filter=f.dataset.f; shown=PAGE; document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b===f)); renderGrid(); return; }
+  const w=t.closest('[data-watch]'); if(w){ const id=w.dataset.watch; U.watch=U.watch||[]; const on=U.watch.includes(id); U.watch=on?U.watch.filter(x=>x!==id):[...U.watch,id]; save(); renderGrid(); renderTrips(); gamePage(id); toast(on?'Removed from My trips':'Added to My trips'); return; }
+  const p=t.closest('[data-pack]'); if(p){ packPage(+p.dataset.pack); return; }
+  const pg=t.closest('[data-page]'); if(pg){ const [h,b]=PAGES[pg.dataset.page]; openDlg(`<div class="pick"><div class="phead"><h3>${h}</h3></div><div class="in"><p>${b}</p></div></div>`); return; }
 });
 $('moreBtn').addEventListener('click',()=>{ shown+=PAGE; renderGrid(); });
-$('clearBtn').addEventListener('click',()=>{ line='';mode='';lvl='';q='';filter='all';shown=PAGE; $('q').value='';
-  document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f==='all')); renderChips(); renderModeChips(); renderGrid(); });
 $('q').addEventListener('input',e=>{ q=e.target.value; shown=PAGE; renderGrid(); });
+$('clearBtn').addEventListener('click',()=>{ line='';mode='';lvl='';stat='';q='';shown=PAGE; $('q').value=''; renderPickers(); renderGrid(); });
 $('scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') closeDlg(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDlg(); });
-$('signBtn').addEventListener('click',()=>{ if(U.name){ openDlg(`<div class="in"><h3>${esc(U.name)}</h3><p style="color:var(--ink-2)">${fmt(U.tokens)} Tokens · ${U.owned.length} games</p><div class="acts"><button class="btn alt" id="out">Sign out</button></div></div>`); $('out').onclick=()=>{ U={name:'',tokens:0,owned:[],notify:[]}; save(); renderAll(); closeDlg(); toast('Signed out'); }; } else signIn(); });
-$('walletBtn').addEventListener('click',()=>document.getElementById('tokens').scrollIntoView({behavior:'smooth'}));
-ST = CFG.demo ? demoStats() : ST;
-renderAll();
-loadStats();
-setInterval(loadStats,Math.max(10,CFG.refreshSeconds)*1000);
-setInterval(drift,4000);
+$('signBtn').addEventListener('click',()=>signIn());
+/* bottom tab bar highlights the section in view */
+const tabs=[...document.querySelectorAll('#tabbar a')];
+function markTab(){ let cur='top'; ['stations','card','trips'].forEach(id=>{ const el=document.getElementById(id); if(el&&el.getBoundingClientRect().top<window.innerHeight*.45) cur=id; }); tabs.forEach(a=>a.classList.toggle('on',a.dataset.tab===cur)); }
+window.addEventListener('scroll',markTab,{passive:true});
+/* install as an app (Android/desktop Chrome: one tap; iPhone: Add to Home Screen) */
+let installEvt=null;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isApp=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function showInstall(on){ ['installBtn','footInstall'].forEach(id=>{ const el=$(id); if(el) el.hidden=!on; }); }
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); installEvt=e; if(!isApp()) showInstall(true); });
+window.addEventListener('appinstalled',()=>{ installEvt=null; showInstall(false); toast('Gametro9 is on your home screen'); });
+if(isIOS&&!isApp()) showInstall(true);
+function installApp(){
+  if(installEvt){ installEvt.prompt(); installEvt.userChoice.then(()=>{ installEvt=null; }); return; }
+  const SHARE='<svg viewBox="0 0 20 20" width="18" height="18" style="vertical-align:-3px"><path d="M10 2v11M6 6l4-4 4 4M4 10v7h12v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Get the app</div><h3>Install Gametro9</h3></div><div class="in">
+    ${isIOS?`<ol style="padding-left:20px;font-weight:600;line-height:1.7"><li>Tap the Share button ${SHARE} at the bottom of Safari</li><li>Choose <b>Add to Home Screen</b></li><li>Tap <b>Add</b>. Gametro9 appears with your apps</li></ol>`
+      :`<ol style="padding-left:20px;font-weight:600;line-height:1.7"><li>Open this site in <b>Chrome</b></li><li>Tap the menu <b>⋮</b> at the top right</li><li>Choose <b>Install app</b> or <b>Add to Home screen</b></li></ol>`}
+    <p class="note">It's free, takes no Play Store download, and opens full-screen like any app.</p></div></div>`);
+}
+if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost') && !/claude\.ai|claudeusercontent/.test(location.hostname)){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+renderAll(); markTab(); loadStats();
+/* ===== app onboarding: brand intro → disclaimer → sign up → home =====
+   Runs only in the installed app (or with #welcome in the address for testing).
+   The website stays free to browse. Terms version: bump TERMS_V to ask everyone to accept again. */
+const TERMS_V='2026-11';
+const inApp=()=>isApp()||/[?&]source=app/.test(location.search)||location.hash==='#welcome';
+let OB={intro:false,terms:'',card:''};
+try{ OB=Object.assign(OB,JSON.parse(localStorage.getItem('gametro9-onboard')||'{}')); }catch(e){}
+const saveOB=()=>{ try{ localStorage.setItem('gametro9-onboard',JSON.stringify(OB)); }catch(e){} };
+const LOGO_SVG=()=>document.querySelector('.logo svg').outerHTML.replace('<svg','<svg class="lg"');
+const IC={
+  coin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="8.5"/><path d="M9 12h6M12 9v6"/></svg>',
+  ban:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M6 6l12 12"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>'};
+const SLIDES=[
+  {e:'Welcome aboard',h:'Every game is a station.',p:'Original games for your phone, all on one network. Hop on anywhere.',art:`<svg viewBox="0 0 300 160"><path d="M20 120H120L170 70H280" fill="none" stroke="#f0412b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 50H110L150 90" fill="none" stroke="#2f5bff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/><path d="M200 150V120L240 80H285" fill="none" stroke="#13a05c" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>${[[40,120],[95,120],[170,70],[225,70],[275,70]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i===0?12:9}" fill="${i===0?'#ffc929':'#eef0ff'}" stroke="#04051a" stroke-width="4"/>`).join('')}<rect x="112" y="108" width="36" height="22" rx="11" fill="#eef0ff" stroke="#04051a" stroke-width="3"/></svg>`},
+  {e:'Gametro9 Card',h:'One card. Every game.',p:'Recharge Tokens once and spend them in any game on the network.',art:`<svg viewBox="0 0 300 170"><g transform="rotate(-6 150 85)"><rect x="55" y="25" width="190" height="120" rx="16" fill="#f0412b" stroke="#04051a" stroke-width="4"/><path d="M40 95 260 72" stroke="#14163a" stroke-width="12"/><path d="M40 110 260 87" stroke="#ffc929" stroke-width="6"/><text x="75" y="58" font-family="Arial Black,system-ui" font-weight="900" font-size="20" fill="#fff">Gametro9</text></g><circle cx="230" cy="130" r="26" fill="#ffc929" stroke="#04051a" stroke-width="4"/><circle cx="230" cy="130" r="18" fill="none" stroke="#d99a00" stroke-width="3" stroke-dasharray="3 3"/></svg>`},
+  {e:'Play free',h:'Board free. Recharge when you want.',p:'Every open game starts free. Tokens unlock recipes, skins, staff and boosts.',art:`<svg viewBox="0 0 300 160"><rect x="40" y="30" width="220" height="100" rx="18" fill="#191d45" stroke="#eef0ff" stroke-width="4"/><path d="M135 55l40 25-40 25z" fill="#f0412b" stroke="#04051a" stroke-width="4" stroke-linejoin="round"/><circle cx="70" cy="140" r="10" fill="#13a05c"/><circle cx="100" cy="140" r="10" fill="#2f5bff"/><circle cx="130" cy="140" r="10" fill="#e89a00"/></svg>`},
+];
+let obSlide=0;
+function obShow(html){ let el=$('ob'); if(!el){ el=document.createElement('div'); el.id='ob'; el.setAttribute('role','dialog'); el.setAttribute('aria-modal','true'); document.body.appendChild(el); }
+  el.innerHTML=html; el.scrollTop=0; lockPage(true); const f=el.querySelector('[autofocus]'); if(f) setTimeout(()=>f.focus(),80); }
+function obDone(){ const el=$('ob'); if(el) el.remove(); lockPage(false); if(location.hash==='#welcome') history.replaceState(null,'',location.pathname+location.search); renderAll(); toast(`Welcome aboard, ${(U.name||'rider').split(' ')[0]}`); }
+function obNext(){ if(!OB.intro) return obSplash(); if(OB.terms!==TERMS_V) return obTerms(); if(!U.name||!U.card) return obCardStep(); obDone(); }
+function obSplash(){
+  obShow(`<div class="obs splash">${LOGO_SVG()}<div class="wm">Gametro<span>9</span></div><div class="tl">Every game. One card.</div>
+    <div class="line">${[0,33,66,100].map((l,i)=>`<i style="left:${l}%;animation-delay:${1+i*.25}s"></i>`).join('')}</div></div>`);
+  setTimeout(()=>{ if($('ob')&&$('ob').querySelector('.splash')) obSlides(0); },2600);
+}
+function obSlides(i){ obSlide=i; const s=SLIDES[i], last=i===SLIDES.length-1;
+  obShow(`<div class="obs"><div class="obtop">${i?'<button class="back" data-ob="prev" aria-label="Back">‹</button>':'<span></span>'}<button class="skip" data-ob="skip">Skip</button></div>
+    <div class="slide-art">${s.art}</div><div class="eyebrow">${s.e}</div><h2 style="margin-top:8px">${s.h}</h2><p class="sub">${s.p}</p><div class="grow"></div>
+    <div class="dots">${SLIDES.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
+    <button class="btn big" data-ob="${last?'skip':'next'}">${last?'Get started':'Next'}</button></div>`);
+}
+function obTerms(){
+  obShow(`<div class="obs"><div class="obtop"><span class="eyebrow">Step 1 of 2</span><span></span></div>
+    <h2 style="margin-top:6px">Before you board</h2><p class="sub">A few things to know about Gametro9.</p>
+    <ul class="rules">
+      <li style="--lc:#e89a00"><span class="ic">${IC.coin}</span><span><b>Tokens are for in-game items</b><small>You buy Tokens with real money and spend them on items inside our games. They have no cash value and can't be withdrawn, sold or transferred.</small></span></li>
+      <li style="--lc:#f0412b"><span class="ic">${IC.ban}</span><span><b>No gambling, no real-money games</b><small>Gametro9 games are for fun only. Nothing in them pays out money.</small></span></li>
+      <li style="--lc:#2f5bff"><span class="ic">${IC.user}</span><span><b>Under 18? Ask first</b><small>You need a parent or guardian's permission to buy Tokens.</small></span></li>
+      <li style="--lc:#13a05c"><span class="ic">${IC.lock}</span><span><b>Your card stays on your phone</b><small>Your name, Tokens and progress are saved on this device only. Keep your backup code to move to a new phone.</small></span></li>
+    </ul>
+    <label class="check"><input type="checkbox" id="obA1"><span>I agree to the <button class="lnk" type="button" data-page="terms">Terms of use</button> and <button class="lnk" type="button" data-page="privacy">Privacy policy</button></span></label>
+    <label class="check"><input type="checkbox" id="obA2"><span>I'm 18 or older, or I have a parent's permission</span></label>
+    <div class="grow" style="min-height:20px"></div>
+    <button class="btn big" id="obAgree" data-ob="agree" disabled>I agree, continue</button></div>`);
+  const upd=()=>{ $('obAgree').disabled=!($('obA1').checked&&$('obA2').checked); };
+  $('obA1').addEventListener('change',upd); $('obA2').addEventListener('change',upd);
+}
+function newCardId(){ const a=new Uint32Array(2); (crypto.getRandomValues?crypto.getRandomValues(a):a.forEach((_,k)=>a[k]=Math.random()*4294967295)); const d=(String(a[0])+String(a[1])).replace(/\D/g,'').padEnd(12,'7').slice(0,12); return `G9-${d.slice(0,4)}-${d.slice(4,8)}-${d.slice(8,12)}`; }
+function obCardStep(err=''){
+  obShow(`<div class="obs"><div class="obtop"><span class="eyebrow">Step 2 of 2</span><span></span></div>
+    <h2 style="margin-top:6px">Create your Gametro9 Card</h2><p class="sub">Your card holds your Tokens and progress. It's saved on this phone. No phone number, no OTP.</p>
+    <form id="obCardF"><label class="ofield"><span>Name on your card</span><input class="oname" id="obNm" autocomplete="name" maxlength="24" placeholder="e.g. Harkishansingh" autofocus></label>
+    <div class="oerr" id="obNErr">${esc(err)}</div><div class="grow"></div>
+    <button class="btn big" type="submit">Create my card</button></form>
+    <p class="legal">Already have a card? <button class="lnk" type="button" data-ob="restore">Restore from backup code</button></p></div>`);
+  $('obCardF').addEventListener('submit',e=>{ e.preventDefault(); const v=$('obNm').value.trim(); if(v.length<2){ $('obNErr').textContent='Enter at least 2 letters.'; return; }
+    U.name=v; U.card=U.card||newCardId(); save(); OB.card=U.card; saveOB(); obCardReady(); });
+}
+function obCardReady(){
+  obShow(`<div class="obs"><div class="obtop"><span class="eyebrow">You're all set</span><span></span></div>
+    <h2 style="margin-top:6px">Your card is ready</h2><p class="sub">Keep your card number. You'll need your backup code to move to a new phone.</p>
+    <div class="mcard" style="margin:26px auto 10px;transform:rotate(-2deg);width:100%"><div class="top"><b>Gametro9</b><small>TOKEN CARD</small></div><div class="bal">${TOK_LG}<span>${fmt(U.tokens||0)}</span></div><div class="who"><span>${esc(U.name)}</span><span>${esc(U.card)}</span></div></div>
+    <div class="grow"></div><button class="btn big" data-ob="finish">Board Gametro9</button></div>`);
+}
+const backupCode=()=>'G9CARD-'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,u:{name:U.name,card:U.card,tokens:U.tokens,watch:U.watch,played:U.played},ob:OB}))));
+function restoreFrom(code){ try{ const raw=String(code||'').trim().replace(/^G9CARD-/,''); const o=JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!o||!o.u||!o.u.card) throw 0; U=Object.assign({name:'',tokens:0,watch:[],played:{}},o.u); save(); OB=Object.assign(OB,o.ob||{},{card:U.card}); saveOB(); return true; }catch(e){ return false; } }
+function obRestoreStep(err=''){
+  obShow(`<div class="obs"><div class="obtop"><button class="back" data-ob="card" aria-label="Back">‹</button><span class="eyebrow">Restore</span></div>
+    <h2 style="margin-top:6px">Restore your card</h2><p class="sub">Paste the backup code you saved from your old phone.</p>
+    <form id="obRestF"><label class="ofield"><span>Backup code</span><textarea class="oname" id="obCode" rows="4" style="font-size:14px;letter-spacing:0;resize:vertical" placeholder="G9CARD-…" autofocus></textarea></label>
+    <div class="oerr">${esc(err)}</div><div class="grow"></div><button class="btn big" type="submit">Restore card</button></form></div>`);
+  $('obRestF').addEventListener('submit',e=>{ e.preventDefault(); if(restoreFrom($('obCode').value)) obDone(); else obRestoreStep("That code doesn't look right. Copy the whole code and try again."); });
+}
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); return true; }catch(e){ return false; } }
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-ob]'); if(!b) return; const a=b.dataset.ob;
+  if(a==='next') obSlides(obSlide+1); else if(a==='prev') obSlides(obSlide-1);
+  else if(a==='skip'){ OB.intro=true; saveOB(); obNext(); }
+  else if(a==='agree'){ OB.terms=TERMS_V; saveOB(); obNext(); }
+  else if(a==='card') obCardStep(); else if(a==='restore') obRestoreStep(); else if(a==='finish') obDone(); });
+window.addEventListener('hashchange',()=>{ if(location.hash==='#welcome') obNext(); });
+if(inApp()) obNext();
+if(CFG.url) setInterval(loadStats,Math.max(10,CFG.refreshSeconds)*1000);
+setInterval(()=>{ const c=document.querySelector('#board .clock'); if(c) c.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:false}); },20000);
 </script>
 </body>
 </html>

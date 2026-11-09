@@ -17,3 +17,9 @@ To add a new line (a new kind of game), add a block to `G9_LINES` in the same fi
 - `favicon.svg` — the Gametro9 logo
 
 Hosted on GitHub Pages. For gametro9.com later: add a `CNAME` file containing `gametro9.com` and point the domain's DNS at GitHub Pages.
+
+## App install (no Play Store)
+The site installs as an app ("Install app" / "Add to Home Screen").
+- `manifest.webmanifest` — app name, icons, colours
+- `sw.js` — offline helper. After big uploads, change `VERSION` in sw.js (g9-v1 → g9-v2) so phones fetch the new files.
+- `icons/` — app icons

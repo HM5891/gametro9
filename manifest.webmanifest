@@ -1,0 +1,23 @@
+{
+  "name": "Gametro9 · Every game. One card.",
+  "short_name": "Gametro9",
+  "description": "Original games for your phone on one network. One Gametro9 Card for every game.",
+  "id": "./",
+  "start_url": "./?source=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f1230",
+  "theme_color": "#f0412b",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Play Chai Empire", "url": "./play/chai-empire/", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "All stations", "url": "./#stations", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
