@@ -828,6 +828,12 @@ $('signBtn').addEventListener('click',()=>signIn());
 const tabs=[...document.querySelectorAll('#tabbar a')];
 function markTab(){ let cur='top'; ['stations','card','trips'].forEach(id=>{ const el=document.getElementById(id); if(el&&el.getBoundingClientRect().top<window.innerHeight*.45) cur=id; }); tabs.forEach(a=>a.classList.toggle('on',a.dataset.tab===cur)); }
 window.addEventListener('scroll',markTab,{passive:true});
+/* testing: open the site with #reset to wipe this phone's Gametro9 data and start fresh */
+async function hardReset(){ try{ ['gametro9-store','gametro9-onboard','chai-empire-v1'].forEach(k=>localStorage.removeItem(k)); }catch(e){}
+  try{ if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); } }catch(e){}
+  history.replaceState(null,'',location.pathname+'#welcome'); location.reload(); }
+if(location.hash==='#reset') hardReset();
+window.addEventListener('hashchange',()=>{ if(location.hash==='#reset') hardReset(); });
 /* install as an app (Android/desktop Chrome: one tap; iPhone: Add to Home Screen) */
 let installEvt=null;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
