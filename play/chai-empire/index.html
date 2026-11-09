@@ -30,6 +30,14 @@ button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 #app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 /* top bar */
+/* Gametro9 home bar */
+.g9bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:calc(8px + env(safe-area-inset-top,0px))}
+.g9back{display:inline-flex;align-items:center;gap:4px;text-decoration:none;color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:99px;padding:4px 12px 4px 8px;font-family:var(--f-display);font-weight:800;font-size:15px;line-height:1.2}
+.g9back:active{transform:translateY(1px)}
+.g9back svg{width:16px;height:16px}
+.g9back b{color:#f0412b}
+.g9code{font-family:var(--f-display);font-weight:800;font-size:12.5px;letter-spacing:.08em;color:var(--ink-2)}
+.g9code i{display:inline-block;width:9px;height:9px;border-radius:50%;background:#f0412b;margin-right:6px;vertical-align:0}
 .top{display:flex;align-items:center;gap:10px;padding-block:10px 8px}
 .place{flex:1;min-width:0}
 .place h1{margin:0;font-family:var(--f-display);font-size:22px;line-height:1;font-weight:800;color:var(--teal-d)}
@@ -152,6 +160,10 @@ html.locked,body.locked{overflow:hidden;overscroll-behavior:none}
 </head>
 <body>
 <div id="app">
+  <nav class="g9bar" aria-label="Gametro9">
+    <a class="g9back" id="g9back" href="../../" aria-label="Back to Gametro9 home"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Gametro<b>9</b></span></a>
+    <span class="g9code"><i></i>T-01 · Tycoon line</span>
+  </nav>
   <header class="top">
     <div class="place">
       <h1 id="cityName">Ahmedabad</h1>
@@ -553,6 +565,10 @@ function start(data){
 }
 window.claude?.hot?.snapshot?.(()=>({S:save()}));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+<script>
+/* back to Gametro9: return to the page you came from (keeps your place), else open the home page */
+document.getElementById('g9back').addEventListener('click',e=>{ try{ if(document.referrer && new URL(document.referrer).origin===location.origin && history.length>1){ e.preventDefault(); history.back(); } }catch(err){} });
 </script>
 </body>
 </html>
