@@ -108,6 +108,8 @@ button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 .nav button.hot{color:var(--rani)}
 
 /* sheets */
+html.locked,body.locked{overflow:hidden;overscroll-behavior:none}
+.sheet{overscroll-behavior:contain}
 .backdrop{position:fixed;inset:0;background:var(--shade);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
 .backdrop.open{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;max-height:84%;overflow-y:auto;background:var(--panel);border-radius:22px 22px 0 0;z-index:21;transform:translateY(105%);transition:transform .25s ease-out;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:14px calc(18px + env(safe-area-inset-bottom,0px))}
@@ -469,10 +471,10 @@ const SHEETS = {
 let current=null;
 function openSheet(name, html){
   current=name; $('sheet').innerHTML = html || SHEETS[name]();
-  $('sheet').classList.add('open'); $('backdrop').classList.add('open');
+  $('sheet').classList.add('open'); $('backdrop').classList.add('open'); document.documentElement.classList.add('locked'); document.body.classList.add('locked');
 }
 function refreshSheet(){ if(current && SHEETS[current]){ const st=$('sheet').scrollTop; $('sheet').innerHTML=SHEETS[current](); $('sheet').scrollTop=st; } }
-function closeSheet(){ current=null; $('sheet').classList.remove('open'); $('backdrop').classList.remove('open'); }
+function closeSheet(){ current=null; $('sheet').classList.remove('open'); $('backdrop').classList.remove('open'); document.documentElement.classList.remove('locked'); document.body.classList.remove('locked'); }
 
 function confirmPack(k){
   const p=PACKS[k];

@@ -4,18 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gametro9</title>
-<meta name="description" content="Gametro9: original mobile games, A to Z, in one place. One Token wallet for every game.">
+<meta name="description" content="Gametro9: every game, A to Z, on one network. Single player and multiplayer games with one Token card for all of them.">
 <meta name="theme-color" content="#f0412b">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Layout: "cloud nine". A sky hero with a sticker pile of game covers, an A to Z game index, sticker-style game cards, a Token wallet band, then library and footer. Day sky in light mode, night sky in dark. Dialogs handle game pages and checkout. */
+/* Layout: a bright metro network. Hero with a route map where every game is a station, a "now boarding" strip, an A to Z station index, station-sign game cards, a Gametro Card recharge band, then library and footer. Dialogs handle game pages and checkout. */
 :root{
   --bg:#f3f5ff; --surface:#ffffff; --sunk:#e6e9fa; --ink:#14163a; --ink-2:#565a7e; --line:#d4d8f0;
-  --edge:#14163a; --sky:#bfe0ff; --sky-2:#e9f4ff; --cloud:#ffffff;
+  --edge:#14163a; --grid:#e1e5f7; --sign:#14163a; --sign-ink:#f3f5ff; --sign-dim:#9aa0c8; --l-blue:#2340ff; --l-green:#13a05c; --l-sun:#ffb81c;
   --coral:#f0412b; --coral-ink:#ffffff; --cobalt:#2340ff; --sun:#ffc929; --sun-ink:#2a1d00; --good:#0f8a52;
   --scrim:rgba(16,18,50,.55);
   --f-display:'Bricolage Grotesque','Arial Black',system-ui,sans-serif;
@@ -23,15 +23,18 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0f1230; --surface:#191d45; --sunk:#222759; --ink:#eef0ff; --ink-2:#a4a9d6; --line:#2e3470;
-  --edge:#04051a; --sky:#141a52; --sky-2:#0f1230; --cloud:#283080;
+  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5; --l-blue:#6f84ff; --l-green:#3fc07f; --l-sun:#ffc94d;
   --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#8c9cff; --sun:#ffd44f; --sun-ink:#2a1d00; --good:#43c98a;
   --scrim:rgba(0,0,0,.65); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1230; --surface:#191d45; --sunk:#222759; --ink:#eef0ff; --ink-2:#a4a9d6; --line:#2e3470;
-  --edge:#04051a; --sky:#141a52; --sky-2:#0f1230; --cloud:#283080;
+  --edge:#04051a; --grid:#1a1f4c; --sign:#060820; --sign-ink:#eef0ff; --sign-dim:#7d83b5; --l-blue:#6f84ff; --l-green:#3fc07f; --l-sun:#ffc94d;
   --coral:#ff6a52; --coral-ink:#1d0500; --cobalt:#8c9cff; --sun:#ffd44f; --sun-ink:#2a1d00; --good:#43c98a;
   --scrim:rgba(0,0,0,.65); color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
+html.locked,body.locked{overflow:hidden;overscroll-behavior:none}
+html{scrollbar-gutter:stable}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 a{color:inherit}
@@ -45,8 +48,8 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;text-wrap:balance;margin:0
 .stk{border:2.5px solid var(--edge);box-shadow:4px 4px 0 var(--edge)}
 
 /* coin */
-.coin{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--sun);color:var(--sun-ink);font-family:var(--f-display);font-weight:800;font-size:14px;line-height:1;border:2px solid var(--edge);flex:none}
-.coin.lg{width:34px;height:34px;font-size:21px}
+.coin{width:24px;height:24px;flex:none;display:block}
+.coin.lg{width:36px;height:36px}
 
 /* top bar */
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--surface);border-bottom:2.5px solid var(--edge)}
@@ -67,28 +70,85 @@ h1,h2,h3{font-family:var(--f-display);font-weight:800;text-wrap:balance;margin:0
 .btn[disabled]{opacity:.5;cursor:default;transform:none}
 @media (max-width:680px){.links{display:none}.bar .wrap{gap:8px}.logo b{font-size:21px}}
 
-/* hero: the sky */
-.hero{position:relative;overflow:hidden;padding-block:40px 56px;border-bottom:2.5px solid var(--edge);
-  background:
-    radial-gradient(60px 40px at 8% 78%,var(--cloud) 98%,transparent),
-    radial-gradient(90px 55px at 14% 84%,var(--cloud) 98%,transparent),
-    radial-gradient(70px 45px at 88% 22%,var(--cloud) 98%,transparent),
-    radial-gradient(110px 60px at 95% 30%,var(--cloud) 98%,transparent),
-    radial-gradient(80px 46px at 60% 96%,var(--cloud) 98%,transparent),
-    linear-gradient(var(--sky),var(--sky-2))}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:36px;align-items:center;position:relative}
-.hero h1{font-size:clamp(46px,8vw,96px)}
-.hero h1 .nine{color:var(--coral);display:inline-block;transform:rotate(-6deg)}
+/* hero: route map on map paper */
+.hero{position:relative;overflow:hidden;padding-block:38px 30px;border-bottom:2.5px solid var(--edge);
+  background-color:var(--bg);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:32px 32px}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:30px;align-items:center;position:relative}
+.hero h1{font-size:clamp(46px,7.6vw,92px)}
+.hero h1 em{font-style:normal;color:var(--coral)}
 .hero .lead{color:var(--ink-2);font-size:19px;max-width:34ch;margin:18px 0 24px;font-weight:500}
 .hero .cta{display:flex;gap:12px;flex-wrap:wrap}
-.pile{position:relative;height:330px}
-.pile .c{position:absolute;width:56%;max-width:250px;border-radius:16px;overflow:hidden;background:var(--surface)}
-.pile .c .art{aspect-ratio:4/5;max-width:100%}
-.pile .c:nth-child(1){left:2%;top:30px;transform:rotate(-8deg)}
-.pile .c:nth-child(2){left:24%;top:0;transform:rotate(3deg);z-index:2}
-.pile .c:nth-child(3){left:44%;top:46px;transform:rotate(10deg)}
-.pile .badge{position:absolute;right:2%;top:-6px;z-index:3;background:var(--sun);color:var(--sun-ink);font-family:var(--f-display);font-weight:800;border-radius:50%;width:92px;height:92px;display:grid;place-items:center;text-align:center;font-size:15px;line-height:1.05;transform:rotate(12deg)}
-@media (max-width:820px){.hero .wrap{grid-template-columns:1fr}.pile{height:290px;max-width:440px}}
+/* live board (hero): departure-board style, numbers from stats */
+.board{background:var(--sign);color:var(--sign-ink);border-radius:20px;padding:16px 16px 10px;min-width:0}
+.bhead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px 16px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px dashed rgba(255,255,255,.2)}
+.livetag{display:inline-flex;align-items:center;gap:7px;font-weight:800;font-size:12.5px;letter-spacing:.14em;color:#ff7a62;text-transform:uppercase}
+.livetag::before{content:"";width:9px;height:9px;border-radius:50%;background:#ff7a62;animation:blink 1.4s steps(2) infinite}
+.big{font-family:var(--f-display);font-size:clamp(38px,5.4vw,52px);font-weight:800;line-height:1;font-variant-numeric:tabular-nums;margin-top:4px}
+.big small{font-family:var(--f-body);font-size:15px;font-weight:700;color:var(--sign-dim);margin-left:6px}
+.bstats{display:flex;gap:16px;font-size:13.5px;font-weight:700;color:var(--sign-dim)}
+.bstats b{display:block;color:var(--sign-ink);font-size:18px;font-variant-numeric:tabular-nums}
+.demo{display:inline-block;margin-left:8px;background:var(--l-sun);color:#2a1d00;border-radius:5px;padding:1px 7px;font-size:10.5px;letter-spacing:.08em;vertical-align:2px}
+.btitle{margin:12px 0 4px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--sign-dim)}
+.trow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;border:0;background:none;color:inherit;text-align:left;padding:8px 4px;border-radius:10px;font-weight:700}
+.trow:hover{background:rgba(255,255,255,.07)}
+.trow .rk{font-family:var(--f-display);font-size:20px;color:var(--l-sun);text-align:center}
+.trow .nm{min-width:0;display:flex;flex-direction:column;gap:5px}
+.trow .nm span{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .code{flex:none;font-size:10.5px;font-weight:800;background:var(--lc);color:#fff;border-radius:4px;padding:0 5px;letter-spacing:.04em}
+.trow .bar{height:5px;border-radius:3px;background:var(--lc);min-width:6px}
+.trow .pl{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.trow .pl small{display:block;color:var(--sign-dim);font-size:11.5px;font-weight:600}
+.trow.soon{color:var(--sign-dim)}
+.trow.soon .rk{color:var(--sign-dim)}
+
+/* what's happening tiles */
+.happen{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.tile{background:var(--surface);border-radius:18px;padding:16px}
+.tile h3{font-size:24px;display:flex;align-items:center;gap:8px}
+.tile p.sub{margin:4px 0 8px;color:var(--ink-2);font-size:14px}
+.titem{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;border:0;background:none;text-align:left;padding:8px 4px;border-radius:10px;border-top:1px solid var(--line)}
+.titem:hover{background:var(--sunk)}
+.titem .th{width:44px;height:44px;border-radius:10px;overflow:hidden;border:2px solid var(--edge)}
+.titem .th .art{height:100%;padding:0}
+.titem .th .art .t{display:none}
+.titem b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.titem small{color:var(--ink-2);font-weight:600}
+.titem .val{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.up{color:var(--good)}
+.livedot{display:inline-flex;align-items:center;gap:5px;color:var(--good);font-weight:800}
+.livedot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--good)}
+
+/* network map: one row per line, built from games.js */
+.net{background:var(--surface);border-radius:20px;padding:14px 14px 8px;min-width:0}
+.net-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;padding:0 4px 6px;border-bottom:2px dashed var(--line)}
+.net-head b{font-family:var(--f-display);font-size:20px;white-space:nowrap}
+.net-head span{font-size:13px;font-weight:700;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.lrow{display:block;width:100%;border:0;background:none;text-align:left;padding:10px 6px 8px;border-radius:12px}
+.lrow:hover{background:var(--sunk)}
+.lrow + .lrow{border-top:1px solid var(--line);border-radius:0}
+.lname{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px}
+.lbadge{min-width:30px;height:26px;padding:0 6px;border-radius:7px;background:var(--lc);color:#fff;border:2px solid var(--edge);display:grid;place-items:center;font-family:var(--f-display);font-size:14px}
+.lname small{margin-left:auto;color:var(--ink-2);font-weight:700;font-size:12.5px;white-space:nowrap}
+.trk{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:8px}
+.trk::before{content:"";position:absolute;left:10px;right:10px;top:7px;height:7px;border-radius:4px;background:var(--lc)}
+.st{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;font-size:12px;font-weight:700;color:var(--ink-2);padding:0 2px;min-width:0;line-height:1.15}
+.st i{width:21px;height:21px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge);display:block}
+.st.live{color:var(--ink)}
+.st.live i{background:var(--sun)}
+.st.more i{background:var(--lc);border-color:var(--edge)}
+.st.more{color:var(--ink)}
+.st span{overflow-wrap:anywhere}
+@media (max-width:820px){.hero .wrap{grid-template-columns:1fr}}
+.hero .lead b{color:var(--ink)}
+
+/* now boarding strip */
+.boarding{background:var(--sign);color:var(--sign-ink);border-bottom:2.5px solid var(--edge)}
+.boarding .wrap{display:flex;align-items:center;gap:14px;padding-block:10px;font-weight:700;font-size:15px;flex-wrap:wrap}
+.boarding .lamp{display:inline-flex;align-items:center;gap:8px;color:var(--l-sun);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+.boarding .lamp::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--l-sun);animation:blink 1.4s steps(2) infinite}
+.boarding .dim{color:var(--sign-dim);font-weight:600}
+.boarding button{margin-left:auto;border:0;background:none;color:var(--sign-ink);text-decoration:underline;text-underline-offset:3px;font-weight:700;padding:0}
+@keyframes blink{50%{opacity:.25}}
 
 /* A to Z index */
 .az{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -105,7 +165,81 @@ section{padding-block:34px}
 .filters button{border:2px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 13px;font-weight:700;font-size:14px}
 .filters button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 
-/* cover art (each game paints its own) */
+/* search + line chips */
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 12px}
+.search{flex:1 1 240px;display:flex;align-items:center;gap:8px;background:var(--surface);border:2.5px solid var(--edge);border-radius:12px;padding:0 12px}
+.search input{flex:1;min-width:0;border:0;background:none;font:inherit;font-weight:600;color:var(--ink);padding:10px 0;outline:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;font-weight:700;font-size:14px}
+.chips button i{width:10px;height:10px;border-radius:50%;background:var(--lc)}
+.chips button[aria-pressed="true"]{border-color:var(--edge);background:var(--ink);color:var(--bg)}
+.moreBtn{display:flex;justify-content:center;margin-top:22px}
+.frow{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.selects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sel{display:grid;gap:4px;min-width:0}
+.sel > span{font-size:11.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);padding-left:2px}
+.dd{display:flex;align-items:center;gap:6px;width:100%;min-width:0;background:var(--surface);color:var(--ink);border:2.5px solid var(--edge);box-shadow:3px 3px 0 var(--edge);border-radius:12px;padding:10px 10px 10px 12px;font-weight:800;font-size:15px;text-align:left;transition:transform .1s,box-shadow .1s}
+.dd:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--edge)}
+.dd .ddv{flex:1;min-width:0;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd .ddv > span{overflow:hidden;text-overflow:ellipsis}
+.dd .car{width:13px;height:13px;flex:none}
+.dd.on{background:var(--ink);color:var(--bg)}
+.dd .mk{flex:none}
+.mk.badge{min-width:22px;height:20px;padding:0 4px;border-radius:5px;background:var(--lc);color:#fff;border:1.5px solid var(--edge);display:inline-grid;place-items:center;font-family:var(--f-display);font-size:11.5px;line-height:1}
+.mk.ldot{width:11px;height:11px;border-radius:50%;background:var(--lvc);border:1.5px solid var(--edge)}
+.mk.ico svg{width:15px;height:15px;display:block}
+
+/* picker sheet */
+.pick .phead{background:var(--sign);color:var(--sign-ink);padding:16px 20px 14px;padding-left:max(20px,env(safe-area-inset-left,0px));border-bottom:2.5px solid var(--edge)}
+.pick .phead .eyebrow{color:var(--l-sun)}
+.pick .phead h3{font-size:28px;margin-top:4px}
+.plist{position:relative;padding:10px 14px 4px;display:grid;gap:8px}
+.plist.route{padding-left:14px}
+.popt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);color:var(--ink);border:2.5px solid var(--line);border-radius:14px;padding:12px 14px;font-weight:800;font-size:16px}
+.popt:hover{border-color:var(--edge)}
+.popt .mk.badge{min-width:34px;height:30px;font-size:16px;border-radius:8px;border-width:2px}
+.popt .mk.ldot{width:16px;height:16px;border-width:2px}
+.popt .mk.ico{width:34px;height:30px;border-radius:8px;background:var(--sunk);display:grid;place-items:center}
+.popt .mk.ico svg{width:18px;height:18px}
+.popt .lab2{flex:1;min-width:0}
+.popt small{display:block;font-weight:600;font-size:12.5px;color:var(--ink-2)}
+.popt .cnt{font-size:13px;font-weight:800;color:var(--ink-2);font-variant-numeric:tabular-nums;background:var(--sunk);border-radius:99px;padding:2px 9px}
+.popt[aria-checked="true"]{border-color:var(--edge);box-shadow:3px 3px 0 var(--edge);background:var(--ink);color:var(--bg)}
+.popt[aria-checked="true"] small{color:var(--bg);opacity:.75}
+.popt[aria-checked="true"] .cnt{background:var(--coral);color:#fff}
+.popt[aria-checked="true"] .mk.ico{background:rgba(255,255,255,.15)}
+.clearRow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;font-size:14px;font-weight:700;color:var(--ink-2)}
+.clearRow button{white-space:nowrap;border:0;background:none;color:var(--coral);font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:0}
+@media (max-width:420px){.dd{font-size:13.5px;padding:9px 8px 9px 9px;gap:4px}.dd .mk.badge{min-width:18px;height:18px;font-size:10.5px}}
+.frow .lab{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2);min-width:46px}
+
+/* play modes + difficulty */
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--sunk);color:var(--ink)}
+.tag svg{width:14px;height:14px;flex:none}
+.tag.lv{background:none;border:1.5px solid var(--lvc);color:var(--ink)}
+.lvl{--lvc:var(--ink-2)}
+.lvl-Easy{--lvc:var(--good)} .lvl-Normal{--lvc:var(--cobalt)} .lvl-Hard{--lvc:var(--coral)} .lvl-Expert{--lvc:var(--ink)}
+.howto{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center;margin:14px 0 4px;padding:12px 14px;background:var(--sunk);border-radius:12px}
+.howto .k{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.howto .no{opacity:.4;text-decoration:line-through}
+.chips button .dotlv{width:10px;height:10px;border-radius:50%;background:var(--lvc)}
+
+/* line route (in dialog) */
+.route{position:relative;margin:14px 0 4px;padding-left:36px}
+.route::before{content:"";position:absolute;left:12px;top:16px;bottom:16px;width:8px;border-radius:4px;background:var(--lc)}
+.rstop{position:relative;display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;text-align:left;padding:9px 6px;border-radius:10px}
+.rstop:hover{background:var(--sunk)}
+.rstop::before{content:"";position:absolute;left:-31px;top:50%;width:18px;height:18px;margin-top:-12px;border-radius:50%;background:var(--surface);border:3.5px solid var(--edge)}
+.rstop.live::before{background:var(--sun)}
+.rstop .code{font-size:12.5px;font-weight:800;color:var(--ink-2);min-width:42px;font-variant-numeric:tabular-nums}
+.rstop b{flex:1;min-width:0}
+.rstop .status{flex:none}
+
+/* cover art (each game paints its own; a-auto is drawn from the line colour) */
+.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.a-auto{background:repeating-linear-gradient(45deg,rgba(255,255,255,.14) 0 14px,transparent 14px 28px),var(--lc)}
+.a-auto::after{content:attr(data-code);position:absolute;right:12px;top:10px;font-family:var(--f-display);font-weight:800;font-size:30px;color:rgba(255,255,255,.55)}
 .art{position:relative;display:flex;align-items:flex-end;padding:14px;overflow:hidden}
 .art .t{position:relative;z-index:1;font-family:var(--f-display);font-weight:800;color:#fff;font-size:24px;line-height:1;letter-spacing:-.02em;text-shadow:0 2px 0 rgba(0,0,0,.28);max-width:11ch}
 .a-chai{background:repeating-linear-gradient(90deg,#c42a69 0 26px,#f2a516 26px 52px) top/100% 34% no-repeat,linear-gradient(#11807c,#0b5d5a)}
@@ -126,6 +260,11 @@ section{padding-block:34px}
 .card{background:var(--surface);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0;transition:transform .12s,box-shadow .12s}
 .card:hover{transform:translate(-2px,-2px) rotate(-.6deg);box-shadow:6px 6px 0 var(--edge)}
 .card .art{height:150px;border-bottom:2.5px solid var(--edge)}
+.stn{display:flex;align-items:center;gap:8px;background:var(--sign);color:var(--sign-ink);padding:7px 12px;font-size:12.5px;font-weight:800;letter-spacing:.08em;border-bottom:2.5px solid var(--edge)}
+.stn .dot{width:13px;height:13px;border-radius:50%;background:var(--sign);border:3px solid var(--sign-dim);flex:none}
+.stn .dot{border-color:var(--lc,var(--sign-dim))}
+.stn.on .dot{background:#fff;border-color:var(--lc,var(--coral))}
+.stn .gen{margin-left:auto;color:var(--sign-dim);font-weight:600;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .card .body{padding:11px 13px 13px;display:flex;flex-direction:column;gap:6px;flex:1}
 .card .genre{font-size:14px;color:var(--ink-2);font-weight:600}
 .card .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto}
@@ -145,11 +284,19 @@ section{padding-block:34px}
 .band .note{background:rgba(255,255,255,.55);color:var(--sun-ink)}
 .packs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .pack{background:var(--surface);color:var(--ink);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:4px;position:relative}
-.pack .amt{font-family:var(--f-display);font-weight:800;font-size:32px;line-height:1;display:flex;align-items:center;gap:9px;font-variant-numeric:tabular-nums}
+.pack .amt{font-family:var(--f-display);font-weight:800;font-size:clamp(24px,6.6vw,32px);line-height:1;display:flex;align-items:center;gap:9px;font-variant-numeric:tabular-nums}
 .pack .bonus{font-size:13.5px;color:var(--good);font-weight:800;min-height:21px}
 .pack .flag{position:absolute;top:-13px;right:12px;background:var(--cobalt);color:var(--surface);font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:6px;border:2px solid var(--edge)}
 .pack .btn{justify-content:center;margin-top:6px}
 .note{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--ink-2);margin-top:12px}
+.mcard{margin:16px 0 6px;max-width:330px;aspect-ratio:1.586;border-radius:18px;background:var(--coral);color:#fff;padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.mcard::before{content:"";position:absolute;left:-12%;right:-12%;top:56%;height:12px;background:var(--sign);transform:rotate(-7deg)}
+.mcard::after{content:"";position:absolute;left:-12%;right:-12%;top:calc(56% + 16px);height:6px;background:var(--l-sun);transform:rotate(-7deg)}
+.mcard .top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}
+.mcard .top b{font-family:var(--f-display);font-size:20px;letter-spacing:-.01em}
+.mcard .top small{font-weight:800;font-size:11px;letter-spacing:.14em;background:rgba(0,0,0,.18);padding:2px 8px;border-radius:5px}
+.mcard .bal{position:relative;z-index:1;display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:800;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.mcard .who{position:relative;z-index:1;display:flex;justify-content:space-between;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.92}
 @media (max-width:820px){.band .wrap{grid-template-columns:1fr}}
 
 /* library */
@@ -157,7 +304,6 @@ section{padding-block:34px}
 .lib .item{flex:0 0 210px;background:var(--surface);border-radius:14px;overflow:hidden}
 .lib .art{height:90px;border-bottom:2.5px solid var(--edge)}
 .lib .art .t{font-size:18px}
-.lib .lrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px}
 .empty{background:var(--surface);border:2.5px dashed var(--line);border-radius:16px;padding:24px;text-align:center;color:var(--ink-2)}
 
 /* footer */
@@ -169,7 +315,7 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
 .testline{background:var(--ink);color:var(--bg);font-size:13px;font-weight:700;text-align:center;padding:5px 16px}
 
 /* dialogs */
-.scrim{position:fixed;inset:0;background:var(--scrim);z-index:30;display:flex;align-items:flex-end;justify-content:center}
+.scrim{overscroll-behavior:contain;position:fixed;inset:0;background:var(--scrim);z-index:30;display:flex;align-items:flex-end;justify-content:center}
 .scrim[hidden]{display:none!important}
 .dlg{background:var(--surface);width:100%;max-width:560px;max-height:88%;overflow-y:auto;border-radius:22px 22px 0 0;border:2.5px solid var(--edge);border-bottom:0;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
 @media (min-width:700px){.scrim{align-items:center}.dlg{border-radius:22px;border-bottom:2.5px solid var(--edge);box-shadow:6px 6px 0 var(--edge);padding-bottom:18px}}
@@ -196,16 +342,11 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
 <header class="bar">
   <div class="wrap">
     <a class="logo" href="#top" aria-label="Gametro9 home">
-      <svg viewBox="0 0 40 40" aria-hidden="true">
-        <rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="var(--coral)" stroke="var(--edge)" stroke-width="2.5"/>
-        <circle cx="19" cy="16" r="8" fill="none" stroke="#fff" stroke-width="4.4"/>
-        <path d="M27 16 V23 Q27 32.5 16.5 32.5" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/>
-        <path d="M16.6 12.4 L22.6 16 L16.6 19.6 Z" fill="#fff" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
-      </svg>
+      <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1.5" y="1.5" width="37" height="37" rx="11" fill="#f0412b" stroke="var(--edge)" stroke-width="2.5"/><path d="M12 13 H28 Q33 13 33.6 19 L34.6 25.5 Q35 31 30.5 30 Q28.6 29.6 27 27 L25.5 25 H14.5 L13 27 Q11.4 29.6 9.5 30 Q5 31 5.4 25.5 L6.4 19 Q7 13 12 13 Z" fill="#fff"/><path d="M11.8 16.5 h2.6 v2.6 h2.6 v2.6 h-2.6 v2.6 h-2.6 v-2.6 h-2.6 v-2.6 h2.6 Z" fill="#f0412b"/><circle cx="26.5" cy="20.2" r="4.6" fill="#f0412b"/><text x="26.5" y="23.4" text-anchor="middle" font-family="Arial Black,system-ui" font-weight="900" font-size="8.6" fill="#fff">9</text></svg>
       <b>Gametro<span>9</span></b>
     </a>
-    <nav class="links"><a href="#games">Games</a><a href="#tokens">Tokens</a><a href="#library">My games</a></nav>
-    <button class="wallet" id="walletBtn" aria-label="Your Tokens"><span class="coin">9</span><span id="bal">0</span></button>
+    <nav class="links"><a href="#games">Stations</a><a href="#tokens">Recharge</a><a href="#library">My games</a></nav>
+    <button class="wallet" id="walletBtn" aria-label="Your Tokens"><svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="bal">0</span></button>
     <button class="btn small alt" id="signBtn">Sign in</button>
   </div>
 </header>
@@ -215,40 +356,55 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
     <div class="wrap">
       <div>
         <div class="eyebrow">Every game, A to Z</div>
-        <h1>Play on cloud <span class="nine">nine.</span></h1>
-        <p class="lead">Original games in one place. Pick any game, and one Token wallet works across all of them.</p>
-        <div class="cta"><a class="btn" href="#games">Browse games</a><a class="btn alt" href="#tokens">Get Tokens</a></div>
+        <h1>Every game.<br><em>One network.</em></h1>
+        <p class="lead">Every game is a station, and every kind of game has its own line. Hop on anywhere, and one Gametro Card carries your Tokens to all of them.</p>
+        <div class="cta"><a class="btn" href="#games">See all stations</a><a class="btn alt" href="#tokens">Recharge card</a></div>
       </div>
-      <div class="pile" aria-hidden="true">
-        <div class="c stk"><div class="art a-ink"><span class="t">Inkborn Arena</span></div></div>
-        <div class="c stk"><div class="art a-chai"><span class="t">Chai Empire</span></div></div>
-        <div class="c stk"><div class="art a-tide"><span class="t">Tidekeeper</span></div></div>
-        <div class="badge stk">8 games<br>1 wallet</div>
-      </div>
+      <div class="board stk" id="board" aria-live="polite"></div>
+    </div>
+  </section>
+  <div class="boarding"><div class="wrap" id="boarding"></div></div>
+
+  <section id="happening">
+    <div class="wrap">
+      <div class="sec-head"><div><div class="eyebrow">Right now</div><h2>What's happening</h2></div></div>
+      <div class="happen" id="happen"></div>
     </div>
   </section>
 
   <section id="games">
     <div class="wrap">
       <div class="sec-head">
-        <div><div class="eyebrow">The collection</div><h2>All games</h2><p id="countLine">1 out now, 7 on the way</p></div>
+        <div><div class="eyebrow">All stations</div><h2>Every game</h2><p id="countLine"></p></div>
         <div class="filters" id="filters">
           <button aria-pressed="true" data-f="all">All</button>
           <button aria-pressed="false" data-f="live">Out now</button>
           <button aria-pressed="false" data-f="soon">Coming soon</button>
         </div>
       </div>
-      <div class="az" id="az" aria-label="Jump to a letter"></div>
+      <div class="net stk" style="margin-bottom:22px">
+        <div class="net-head"><b>Network map</b><span id="netStats"></span></div>
+        <div id="net"></div>
+      </div>
+      <div class="tools"><label class="search"><span aria-hidden="true">⌕</span><input id="q" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games"></label></div>
+      <div class="selects">
+        <div class="sel"><span>Line</span><button class="dd" id="ddLine" data-dd="line" aria-haspopup="dialog"><span class="ddv" id="ddLineV">All lines</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="sel"><span>Play</span><button class="dd" id="ddMode" data-dd="mode" aria-haspopup="dialog"><span class="ddv" id="ddModeV">Any</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="sel"><span>Level</span><button class="dd" id="ddLvl" data-dd="lvl" aria-haspopup="dialog"><span class="ddv" id="ddLvlV">Any level</span><svg class="car" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+      </div>
+      <div class="clearRow" id="clearRow" hidden><span id="filterNote"></span><button id="clearBtn">Clear filters</button></div>
       <div class="grid" id="grid" style="margin-top:18px"></div>
+      <div class="moreBtn" id="moreWrap" hidden><button class="btn alt" id="moreBtn">Show more stations</button></div>
     </div>
   </section>
 
   <section class="band" id="tokens">
     <div class="wrap">
       <div>
-        <div class="eyebrow">Token wallet</div>
-        <h2>One wallet. Every game.</h2>
-        <p>Buy Tokens once and spend them in any Gametro9 game on recipes, skins, staff and boosts.</p>
+        <div class="eyebrow">Gametro Card</div>
+        <h2>One card. Every game.</h2>
+        <div class="mcard" aria-label="Your Gametro Card"><div class="top"><b>Gametro9</b><small>TOKEN CARD</small></div><div class="bal"><svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg><span id="cardBal">0</span></div><div class="who"><span id="cardName">Guest rider</span><span>All lines</span></div></div>
+        <p>Recharge once and spend Tokens in any Gametro9 game on recipes, skins, staff and boosts.</p>
         <p class="note">Tokens are for in-game items only. They cannot be withdrawn, sold or exchanged for money.</p>
       </div>
       <div class="packs" id="packs"></div>
@@ -265,7 +421,7 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
 
 <footer>
   <div class="wrap">
-    <div><b>Gametro9</b> · Play on cloud nine.<br>© 2026 Gametro9<br>Support: support@gametro9.com</div>
+    <div><b>Gametro9</b> · Every game. One network.<br>© 2026 Gametro9<br>Support: support@gametro9.com</div>
     <nav><button data-page="about">About</button><button data-page="privacy">Privacy policy</button><button data-page="terms">Terms</button><button data-page="refund">Refunds</button></nav>
   </div>
 </footer>
@@ -273,67 +429,199 @@ footer button{border:0;background:none;padding:0;color:var(--ink-2);text-decorat
 <div class="scrim" id="scrim" hidden><div class="dlg" id="dlg" role="dialog" aria-modal="true"></div></div>
 <div class="toast" id="toast"></div>
 
+<script src="games.js"></script>
+<script src="stats.js"></script>
 <script>
-const PLAY_URL = 'play/chai-empire/';
-const GAMES = [
-  {id:'chai', n:'Chai Empire', art:'a-chai', genre:'Cozy tycoon', price:0, live:true,
-   d:'Start with one roadside stall and grow it into a chai chain across India. Serve customers, brew fast, hire staff and unlock new cities.',
-   buys:['Premium recipes like Kesar and Rose chai','Staff such as Chai Wala Dada','Stall decorations that raise tips','Rush-hour 2x coin boosts']},
-  {id:'ink', n:'Inkborn Arena', art:'a-ink', genre:'Draw-and-battle', price:49,
-   d:'Draw a creature with your finger. Its shape becomes its stats, then it fights other players\' drawings.',
-   buys:['Special inks with bonus effects','Extra drawing slots','Arena themes']},
-  {id:'tide', n:'Tidekeeper', art:'a-tide', genre:'Timing puzzle', price:0,
-   d:'Keep the lighthouse on a drifting island and guide ships home through storms.',
-   buys:['Lighthouse skins','Rare ship blueprints','Storm shields']},
-  {id:'echo', n:'Echo Thief', art:'a-echo', genre:'Stealth heist', price:79,
-   d:'Short heists where sound is your only map. Every noise you make lights the room, and the guards hear it too.',
-   buys:['Gadgets','Thief outfits','Extra lives per heist']},
-  {id:'grav', n:'Gravity Gardener', art:'a-grav', genre:'Relaxing builder', price:0,
-   d:'Grow plants on tiny planets where gravity bends how they grow. Trade rare seeds with friends.',
-   buys:['Rare seeds','New planets','Growth boosts']},
-  {id:'mirror', n:'Mirror Duel', art:'a-mirror', genre:'1v1 puzzle', price:0,
-   d:'Whatever you build on your side appears flipped on your rival\'s. Win by sabotage through symmetry.',
-   buys:['Board themes','Emotes','Ranked season pass']},
-  {id:'train', n:'Last Train Out', art:'a-train', genre:'Roguelike survival', price:99,
-   d:'One endless train, one choice per carriage. Upgrade your train between runs and see how far you get.',
-   buys:['New carriage types','Character skins','Revive tickets']},
-  {id:'pocket', n:'Pocket Kingdoms', art:'a-pocket', genre:'Slow strategy', price:0,
-   d:'Rule one tiny tile on a shared map. Trade, ally or raid your neighbours once a day.',
-   buys:['Buildings and banners','Defence walls','Map expansion']},
-];
+/* All games and lines come from games.js. Nothing here is fixed to a number of games. */
+const LINES = (window.G9_LINES||[]).map(l=>({...l}));
+const LINE = Object.fromEntries(LINES.map(l=>[l.id,l]));
+const GAMES = (window.G9_GAMES||[]).map(g=>({...g}));
+const fallbackLine = {id:'other',name:'Other',code:'X',color:'#7a7fa8'};
+const lineOf = g => LINE[g.line] || fallbackLine;
+/* station codes are numbered per line in launch order: T-01, T-02 ... T-100 ... */
+const perLine = {};
+GAMES.forEach(g=>{ const L=lineOf(g); perLine[L.id]=(perLine[L.id]||0)+1; g.code=L.code+'-'+String(perLine[L.id]).padStart(2,'0'); g.n=g.name; });
+const TOK = '<svg class="coin" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>';
+const TOK_LG = '<svg class="coin lg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.6" fill="#ffc929" stroke="#14163a" stroke-width="2"/><circle cx="20" cy="20" r="17.6" fill="none" stroke="#d99a00" stroke-width="2.2" stroke-dasharray="1.6 1.3"/><circle cx="20" cy="20" r="14.6" fill="#ffc929" stroke="#14163a" stroke-width="1.4"/><g transform="translate(20 21) scale(.92) translate(-20 -21)"><path d="M14 15.5 H26 Q29.6 15.5 30 19.5 L30.7 23.8 Q31 27.4 28 26.7 Q26.8 26.4 25.8 24.8 L24.9 23.6 H15.1 L14.2 24.8 Q13.2 26.4 12 26.7 Q9 27.4 9.3 23.8 L10 19.5 Q10.4 15.5 14 15.5 Z" fill="#f0412b" stroke="#14163a" stroke-width="1.2" stroke-linejoin="round"/><path d="M14.2 18 h1.7 v1.7 h1.7 v1.7 h-1.7 v1.7 h-1.7 v-1.7 h-1.7 v-1.7 h1.7 Z" fill="#fff"/><circle cx="25.2" cy="20.7" r="2.4" fill="#fff"/></g></svg>';
 const PACKS = [
   {t:100,p:19},{t:550,p:99,b:'+10% bonus'},{t:3000,p:499,b:'+20% bonus',best:true},{t:13000,p:1999,b:'+30% bonus'}
 ];
+const PAGE = 12;
+
+/* ---- player stats ----
+   Real numbers: set G9_STATS_CONFIG.url in stats.js to a JSON address that returns
+   {"online":N,"today":N,"games":{"<game id>":{"now":N,"today":N,"week":N,"waiting":N}}}
+   Until then the board runs on demo numbers and says so. Only open games can have players. */
+const CFG = Object.assign({url:'', refreshSeconds:30, demo:true}, window.G9_STATS_CONFIG||{});
+let ST = {online:0, today:0, games:{}, demo:true};
+function hash(t){ let h=2166136261; for(const c of t){ h^=c.charCodeAt(0); h=Math.imul(h,16777619); } return Math.abs(h); }
+function demoStats(){
+  const games={}; let online=0, today=0;
+  GAMES.forEach(g=>{ const h=hash(g.id);
+    if(g.live){ const now=180+h%1400; games[g.id]={now, today:now*(7+h%5), week:-6+h%70, waiting:0}; online+=now; today+=games[g.id].today; }
+    else games[g.id]={now:0,today:0,week:0,waiting:300+h%4200};
+  });
+  return {online,today,games,demo:true};
+}
+function drift(){ if(!ST.demo) return; let online=0;
+  GAMES.forEach(g=>{ const s=ST.games[g.id]; if(g.live&&s){ s.now=Math.max(20,Math.round(s.now*(1+(Math.random()-.47)*.04))); online+=s.now; } });
+  ST.online=online; renderBoard(); }
+async function loadStats(){
+  if(CFG.url){ try{ const r=await fetch(CFG.url,{cache:'no-store'}); if(r.ok){ const j=await r.json(); ST={online:j.online||0,today:j.today||0,games:j.games||{},demo:false}; renderLive(); return; } }catch(e){} }
+  if(CFG.demo){ if(!Object.keys(ST.games).length) ST=demoStats(); } else ST={online:0,today:0,games:{},demo:false};
+  renderLive();
+}
+const S = id => ST.games[id] || {now:0,today:0,week:0,waiting:0};
+function renderLive(){ renderBoard(); renderHappen(); renderGrid(); }
 const fmt = n => n.toLocaleString('en-IN');
+const esc = t => String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $ = id => document.getElementById(id);
 const KEY='gametro9-store';
 
 let U = {name:'', tokens:0, owned:[], notify:[]};
 try{ const r=localStorage.getItem(KEY); if(r) U=Object.assign(U,JSON.parse(r)); }catch(e){}
 const save = () => { try{ localStorage.setItem(KEY,JSON.stringify(U)); }catch(e){} };
-let filter='all', letter='', toastT;
+let mode='', lvl='', filter='all', line='', letter='', q='', shown=PAGE, toastT;
 function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2000); }
 
 function priceLabel(g){ return g.price ? `₹${g.price}` : 'Free'; }
 function statusOf(g){ return U.owned.includes(g.id) ? '<span class="status own">In my games</span>' : g.live ? '<span class="status live">Out now</span>' : '<span class="status soon">Coming soon</span>'; }
+function art(g, big){
+  const L=lineOf(g), t=`<span class="t">${esc(g.n)}</span>`;
+  if(g.cover) return `<div class="art" style="--lc:${L.color}"><img src="${esc(g.cover)}" alt="" loading="lazy">${t}</div>`;
+  if(g.art) return `<div class="art ${g.art}">${t}</div>`;
+  return `<div class="art a-auto" data-code="${g.code}" style="--lc:${L.color}">${t}</div>`;
+}
+function stn(g, prefix){ const L=lineOf(g);
+  return `<div class="stn${g.live?' on':''}" style="--lc:${L.color}"><span class="dot"></span>${prefix||''}${g.code}<span class="gen">${g.live?'Open now':'Under construction'}</span></div>`; }
+
+/* network map: every line gets a row; the row shows up to 3 stations (live first, then newest) and "+N more" */
+function renderNet(){
+  const live=GAMES.filter(g=>g.live).length;
+  $('netStats').textContent=`${LINES.length} lines · ${fmt(GAMES.length)} stations · ${fmt(live)} open`;
+  $('net').innerHTML = LINES.map(L=>{
+    const list=GAMES.filter(g=>lineOf(g).id===L.id);
+    const pick=[...list.filter(g=>g.live).reverse(), ...list.filter(g=>!g.live).reverse()];
+    const show = list.length<=4 ? list : pick.slice(0,3);
+    const extra = list.length - show.length;
+    const stops = show.map(g=>`<span class="st${g.live?' live':''}" data-game="${g.id}"><i></i><span>${esc(g.n)}</span></span>`).join('')
+      + (extra>0?`<span class="st more"><i></i><span>+${fmt(extra)} more</span></span>`:'')
+      + (list.length===0?`<span class="st"><i></i><span>Opening soon</span></span>`:'');
+    return `<button class="lrow" data-line="${L.id}" style="--lc:${L.color}">
+      <span class="lname"><span class="lbadge">${esc(L.code)}</span>${esc(L.name)}<small>${fmt(list.length)} station${list.length===1?'':'s'}</small></span>
+      <span class="trk">${stops}</span></button>`;
+  }).join('');
+}
+function renderBoard(){
+  const live=GAMES.filter(g=>g.live).sort((a,b)=>S(b.id).now-S(a.id).now);
+  const soon=GAMES.filter(g=>!g.live).sort((a,b)=>S(b.id).waiting-S(a.id).waiting);
+  const top=live.slice(0,5), max=Math.max(1,...top.map(g=>S(g.id).now));
+  const fill=soon.slice(0,Math.max(0,5-top.length));
+  const row=(g,i)=>{ const L=lineOf(g), s=S(g.id);
+    return g.live
+      ? `<button class="trow" data-game="${g.id}" style="--lc:${L.color}"><span class="rk">${i+1}</span><span class="nm"><span><span class="code">${g.code}</span>${esc(g.n)}</span><i class="bar" style="width:${Math.max(6,Math.round(s.now/max*100))}%"></i></span><span class="pl">${fmt(s.now)}<small>playing</small></span></button>`
+      : `<button class="trow soon" data-game="${g.id}" style="--lc:${L.color}"><span class="rk">·</span><span class="nm"><span><span class="code">${g.code}</span>${esc(g.n)}</span></span><span class="pl">Opens soon${s.waiting?`<small>${fmt(s.waiting)} waiting</small>`:''}</span></button>`; };
+  $('board').innerHTML = `<div class="bhead"><div><span class="livetag">Live now</span>${ST.demo?'<span class="demo">Demo numbers</span>':''}
+      <div class="big">${fmt(ST.online)}<small>playing now</small></div></div>
+      <div class="bstats"><div><b>${fmt(ST.today)}</b>played today</div><div><b>${fmt(live.length)}</b>games open</div></div></div>
+    <div class="btitle">Most popular right now</div>
+    ${top.map(row).join('')}${fill.map(g=>row(g)).join('')}
+    ${!GAMES.length?'<p class="sub">The first station opens soon.</p>':''}`;
+}
+function renderHappen(){
+  const thumb=g=>`<span class="th">${art(g)}</span>`;
+  const item=(g,val,sub)=>`<button class="titem" data-game="${g.id}">${thumb(g)}<span style="min-width:0"><b>${esc(g.n)}</b><small>${sub}</small></span><span class="val">${val}</span></button>`;
+  const live=GAMES.filter(g=>g.live);
+  const trending=[...live].sort((a,b)=>S(b.id).week-S(a.id).week).slice(0,3);
+  const fresh=[...GAMES].reverse().slice(0,3);
+  const next=GAMES.filter(g=>!g.live).sort((a,b)=>S(b.id).waiting-S(a.id).waiting).slice(0,3);
+  const mine=GAMES.filter(g=>U.owned.includes(g.id)).slice(-3).reverse();
+  const tiles=[
+    ['Trending this week','Fastest-growing games', trending.map(g=>item(g,`<span class="up">${S(g.id).week>=0?'▲':'▼'} ${Math.abs(S(g.id).week)}%</span>`,`${fmt(S(g.id).now)} playing now`)).join('') || '<p class="sub">Trending starts when more games open.</p>'],
+    ['New stations','Latest games on the network', fresh.map(g=>item(g, g.live?'<span class="livedot">Open</span>':'Soon', `${esc(lineOf(g).name)} · ${g.code}`)).join('')],
+    ['Coming next','Most-awaited games', next.map(g=>item(g, `${fmt(S(g.id).waiting)}`, 'people waiting')).join('') || '<p class="sub">Every game is open.</p>'],
+  ];
+  const friends=GAMES.filter(g=>modesOf(g).includes('multi')).sort((a,b)=>(b.live-a.live)||(S(b.id).now-S(a.id).now)).slice(0,3);
+  if(friends.length) tiles.push(['Play with friends','Multiplayer games', friends.map(g=>item(g, g.live?`<span class="livedot">${fmt(S(g.id).now)}</span>`:'Soon', modesOf(g).includes('single')?'Single + Multi':'Multiplayer only')).join('')]);
+  if(mine.length) tiles.unshift(['Continue playing','Your games', mine.map(g=>item(g, g.live?'<span class="livedot">Play</span>':'Soon', esc(g.genre))).join('')]);
+  $('happen').innerHTML = tiles.map(([h,sub,body])=>`<div class="tile stk"><h3>${h}${ST.demo&&h!=='New stations'&&h!=='Continue playing'&&h!=='Play with friends'?'<span class="demo">Demo</span>':''}</h3><p class="sub">${sub}</p>${body}</div>`).join('');
+}
+function renderBoarding(){
+  const live=GAMES.filter(g=>g.live), soon=GAMES.filter(g=>!g.live);
+  const now=live[live.length-1], next=soon[0];
+  $('boarding').innerHTML = now
+    ? `<span class="lamp">Now boarding</span><span>${esc(lineOf(now).name)} line · ${esc(now.n)}</span>${next?`<span class="dim">Next: ${esc(next.n)}</span>`:''}<button data-game="${now.id}">Board now</button>`
+    : `<span class="lamp">Opening soon</span><span>The first station opens soon</span>`;
+}
+const ICON={single:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5" r="3" fill="currentColor"/><path d="M2.5 14c0-3 2.4-5 5.5-5s5.5 2 5.5 5z" fill="currentColor"/></svg>',
+  multi:'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="5.5" cy="5" r="2.6" fill="currentColor"/><circle cx="11" cy="5.6" r="2.2" fill="currentColor" opacity=".7"/><path d="M.8 14c0-2.7 2-4.6 4.7-4.6s4.7 1.9 4.7 4.6z" fill="currentColor"/><path d="M10.6 14c0-1.6-.5-3-1.4-3.9.6-.3 1.2-.4 1.8-.4 2.3 0 4.2 1.7 4.2 4.3z" fill="currentColor" opacity=".7"/></svg>'};
+const MODE_NAME={single:'Single player',multi:'Multiplayer'};
+const LEVELS=['Easy','Normal','Hard','Expert'];
+const modesOf=g=>(g.modes&&g.modes.length)?g.modes:['single'];
+const levelsOf=g=>(g.levels||[]).filter(l=>LEVELS.includes(l));
+function tags(g){
+  const m=modesOf(g), mt = m.includes('single')&&m.includes('multi') ? `<span class="tag">${ICON.multi}Single + Multi</span>` : m.includes('multi') ? `<span class="tag">${ICON.multi}Multiplayer</span>` : `<span class="tag">${ICON.single}Single</span>`;
+  const lv=levelsOf(g); return `<span class="tags">${mt}${lv.length?`<span class="tag lv lvl lvl-${lv[0]}" style="--lvc:var(--line)">${lv.length===1?lv[0]:lv[0]+' – '+lv[lv.length-1]}</span>`:''}</span>`;
+}
+function lineMark(L){ return `<span class="mk badge" style="--lc:${L.color}">${esc(L.code)}</span>`; }
+function lvlMark(v){ return `<span class="mk ldot lvl lvl-${v}"></span>`; }
+function modeMark(v){ return `<span class="mk ico">${ICON[v]}</span>`; }
+function renderChips(){
+  const L=LINE[line];
+  $('ddLineV').innerHTML = L ? `${lineMark(L)}<span>${esc(L.name)}</span>` : '<span>All lines</span>';
+  $('ddLine').classList.toggle('on',!!line);
+}
+function renderModeChips(){
+  $('ddModeV').innerHTML = mode ? `${modeMark(mode)}<span>${mode==='single'?'Single':'Multi'}</span>` : '<span>Any</span>';
+  $('ddLvlV').innerHTML = lvl ? `${lvlMark(lvl)}<span>${lvl}</span>` : '<span>Any level</span>';
+  $('ddMode').classList.toggle('on',!!mode); $('ddLvl').classList.toggle('on',!!lvl);
+}
+function openPicker(kind){
+  let title, items, cur;
+  if(kind==='line'){ title='Choose a line'; cur=line;
+    items=[{v:'',t:'All lines',sub:'Every station on the network',n:GAMES.length,mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>'}]
+      .concat(LINES.map(L=>({v:L.id,t:L.name,sub:`Line ${L.code}`,n:GAMES.filter(g=>lineOf(g).id===L.id).length,mk:lineMark(L)}))); }
+  else if(kind==='mode'){ title='How do you want to play?'; cur=mode;
+    items=[{v:'',t:'Any',sub:'All games',n:GAMES.length,mk:'<span class="mk ico">'+ICON.multi+'</span>'},
+      {v:'single',t:'Single player',sub:'Play on your own',n:GAMES.filter(g=>modesOf(g).includes('single')).length,mk:modeMark('single')},
+      {v:'multi',t:'Multiplayer',sub:'Play with friends and other players',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
+  else { title='Pick a level'; cur=lvl;
+    const SUB={Easy:'Relaxed, good for beginners',Normal:'The standard challenge',Hard:'For experienced players',Expert:'Only for the best'};
+    items=[{v:'',t:'Any level',sub:'All games',n:GAMES.length,mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V5M13 13V2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>'}]
+      .concat(LEVELS.filter(v=>GAMES.some(g=>levelsOf(g).includes(v))).map(v=>({v,t:v,sub:SUB[v],n:GAMES.filter(g=>levelsOf(g).includes(v)).length,mk:lvlMark(v)}))); }
+  openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Filter</div><h3>${title}</h3></div>
+    <div class="plist" role="radiogroup" aria-label="${title}">${items.map(it=>`<button class="popt" role="radio" aria-checked="${it.v===cur}" data-pick="${kind}:${esc(it.v)}">${it.mk}<span class="lab2">${esc(it.t)}<small>${esc(it.sub)}</small></span><span class="cnt">${fmt(it.n)}</span></button>`).join('')}</div></div>`);
+}
 function renderAZ(){
   const have=new Set(GAMES.map(g=>g.n[0].toUpperCase()));
   $('az').innerHTML='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(L=>
     `<button class="${have.has(L)?'has':''}" data-l="${have.has(L)?L:''}" aria-pressed="${letter===L}" ${have.has(L)?'':'disabled aria-disabled="true"'}>${L}</button>`).join('');
 }
+function matches(){
+  const qq=q.trim().toLowerCase();
+  return GAMES.filter(g=>(filter==='all'||(filter==='live'?g.live:!g.live))
+    && (!line||lineOf(g).id===line) && (!mode||modesOf(g).includes(mode)) && (!lvl||levelsOf(g).includes(lvl)) && (!letter||g.n[0].toUpperCase()===letter)
+    && (!qq||g.n.toLowerCase().includes(qq)||g.genre.toLowerCase().includes(qq)||g.code.toLowerCase()===qq));
+}
 function renderGrid(){
-  const list=GAMES.filter(g=>(filter==='all'||(filter==='live'?g.live:!g.live)) && (!letter||g.n[0].toUpperCase()===letter));
-  $('grid').innerHTML = list.length ? list.map(g=>`
+  const list=matches();
+  const live=GAMES.filter(g=>g.live).length;
+  $('countLine').textContent = `${fmt(live)} out now, ${fmt(GAMES.length-live)} on the way`+(list.length!==GAMES.length?` · showing ${fmt(list.length)}`:'');
+  $('grid').innerHTML = list.length ? list.slice(0,shown).map(g=>`
     <button class="card stk" data-game="${g.id}">
-      <div class="art ${g.art}"><span class="t">${g.n}</span></div>
-      <div class="body"><div class="genre">${g.genre}</div>
-        <div class="foot"><span class="price">${priceLabel(g)}</span>${statusOf(g)}</div></div>
-    </button>`).join('') : '<p class="none">No games match. Try another letter or filter.</p>';
+      ${stn(g)}${art(g)}
+      <div class="body"><div class="genre">${esc(g.genre)}${g.live&&S(g.id).now?` · <span class="livedot">${fmt(S(g.id).now)} playing</span>`:''}</div>
+        ${tags(g)}<div class="foot"><span class="price">${priceLabel(g)}</span>${statusOf(g)}</div></div>
+    </button>`).join('') : '<p class="none">No games match. Try another search, line, play mode, level or letter.</p>';
+  const act=[line&&lineOf({line}).name, mode&&MODE_NAME[mode], lvl, q.trim()&&`"${q.trim()}"`, filter!=='all'&&(filter==='live'?'Out now':'Coming soon')].filter(Boolean);
+  $('clearRow').hidden=!act.length; $('filterNote').textContent=`${fmt(list.length)} game${list.length===1?'':'s'} · ${act.join(' · ')}`;
+  $('moreWrap').hidden = list.length<=shown;
+  if(list.length>shown) $('moreBtn').textContent=`Show more stations (${fmt(list.length-shown)} left)`;
 }
 function renderPacks(){
   $('packs').innerHTML = PACKS.map((p,i)=>`
     <div class="pack stk">${p.best?'<span class="flag">Best value</span>':''}
-      <div class="amt"><span class="coin lg">9</span>${fmt(p.t)}</div>
+      <div class="amt">${TOK_LG}${fmt(p.t)}</div>
       <div class="bonus">${p.b||''}</div>
       <button class="btn" data-pack="${i}">₹${fmt(p.p)}</button>
     </div>`).join('');
@@ -341,40 +629,54 @@ function renderPacks(){
 function renderLib(){
   const own=GAMES.filter(g=>U.owned.includes(g.id));
   $('lib').innerHTML = own.length ? `<div class="lib">${own.map(g=>`
-    <div class="item stk"><div class="art ${g.art}"><span class="t">${g.n}</span></div>
-      <div class="lrow"><b>${g.n}</b>${g.live?`<a class="btn small" href="${PLAY_URL}" target="_blank" rel="noopener">Play</a>`:'<span class="status soon">Soon</span>'}</div></div>`).join('')}</div>`
-    : `<div class="empty">No games yet. Add Chai Empire for free to get started.</div>`;
+    <div class="item stk">${art(g)}
+      <div class="lrow2" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 10px"><b>${esc(g.n)}</b>${g.live&&g.play?`<a class="btn small" href="${esc(g.play)}" target="_blank" rel="noopener">Play</a>`:'<span class="status soon">Soon</span>'}</div></div>`).join('')}</div>`
+    : `<div class="empty">No games yet. Add a game that's out now to start your first trip.</div>`;
 }
 function renderTop(){
-  $('bal').textContent=fmt(U.tokens);
+  $('bal').textContent=fmt(U.tokens); $('cardBal').textContent=fmt(U.tokens); $('cardName').textContent=U.name||'Guest rider';
   $('signBtn').textContent = U.name ? U.name.split(' ')[0] : 'Sign in';
 }
-function renderAll(){ renderAZ(); renderGrid(); renderPacks(); renderLib(); renderTop(); }
+function renderAll(){ renderBoard(); renderHappen(); renderNet(); renderBoarding(); renderChips(); renderModeChips(); renderGrid(); renderPacks(); renderLib(); renderTop(); }
 
 /* dialogs */
-function openDlg(html){ $('dlg').innerHTML='<button class="x" data-close aria-label="Close">✕</button>'+html; $('scrim').hidden=false; $('dlg').scrollTop=0; }
-function closeDlg(){ $('scrim').hidden=true; }
+/* every popup locks the page behind it, so the background never moves */
+function lockPage(on){ document.documentElement.classList.toggle('locked',on); document.body.classList.toggle('locked',on); }
+function openDlg(html){ $('dlg').innerHTML='<button class="x" data-close aria-label="Close">✕</button>'+html; $('scrim').hidden=false; $('dlg').scrollTop=0; lockPage(true); }
+function closeDlg(){ $('scrim').hidden=true; lockPage(false); }
+$('scrim').addEventListener('touchmove',e=>{ if(!e.target.closest('.dlg')) e.preventDefault(); },{passive:false});
+function linePage(id){
+  const L=LINE[id]; if(!L) return; const list=GAMES.filter(g=>lineOf(g).id===id);
+  openDlg(`<div class="in" style="--lc:${L.color}"><div class="eyebrow">Line ${esc(L.code)}</div><h3>${esc(L.name)}</h3>
+    <p style="color:var(--ink-2);margin:6px 0 0">${fmt(list.length)} station${list.length===1?'':'s'} · ${fmt(list.filter(g=>g.live).length)} open now</p>
+    ${list.length?`<div class="route">${list.map(g=>`<button class="rstop${g.live?' live':''}" data-game="${g.id}"><span class="code">${g.code}</span><b>${esc(g.n)}</b>${statusOf(g)}</button>`).join('')}</div>`:'<p class="note">No stations on this line yet.</p>'}</div>`);
+}
+function howTo(g){
+  const m=modesOf(g), lv=levelsOf(g);
+  return `<div class="howto"><span class="k">Play</span><span class="tags">${['single','multi'].map(k=>`<span class="tag${m.includes(k)?'':' no'}">${ICON[k]}${MODE_NAME[k]}</span>`).join('')}</span>
+    <span class="k">Levels</span><span class="tags">${lv.length?lv.map(L=>`<span class="tag lv lvl lvl-${L}">${L}</span>`).join(''):'<span style="color:var(--ink-2);font-weight:600;font-size:14px">One level for everyone</span>'}</span></div>`;
+}
 function gamePage(id){
-  const g=GAMES.find(g=>g.id===id), own=U.owned.includes(id);
+  const g=GAMES.find(g=>g.id===id); if(!g) return; const own=U.owned.includes(id), L=lineOf(g);
   let main;
-  if(own && g.live) main=`<a class="btn" href="${PLAY_URL}" target="_blank" rel="noopener">Play now</a>`;
+  if(own && g.live) main=g.play?`<a class="btn" href="${esc(g.play)}" target="_blank" rel="noopener">Play now</a>`:`<button class="btn" disabled>Opening soon</button>`;
   else if(own) main=`<button class="btn" disabled>In my games</button>`;
   else if(!g.live) main = U.notify.includes(id) ? `<button class="btn" disabled>We will notify you</button>` : `<button class="btn" data-notify="${id}">Notify me at launch</button>`;
   else main = g.price ? `<button class="btn" data-buygame="${id}">Buy for ₹${g.price}</button>` : `<button class="btn" data-get="${id}">Get free</button>`;
-  openDlg(`<div class="art ${g.art}"><span class="t">${g.n}</span></div><div class="in">
-    <div class="eyebrow">${g.genre} · ${priceLabel(g)}${g.live?'':' · coming soon'}</div>
-    <h3>${g.n}</h3><p>${g.d}</p>
-    <p style="margin:12px 0 0;font-weight:800">What Tokens buy in this game</p>
-    <ul>${g.buys.map(b=>`<li>${b}</li>`).join('')}</ul>
-    <div class="acts">${main}<a class="btn alt" href="#tokens" data-close>Get Tokens</a></div>
-    <p class="note">Android only at launch. Your Tokens and progress stay with your Gametro9 account.</p></div>`);
+  openDlg(`${stn(g,'Station ')}${art(g)}<div class="in">
+    <div class="eyebrow">${esc(L.name)} line · ${esc(g.genre)} · ${priceLabel(g)}</div>
+    <h3>${esc(g.n)}</h3>${g.live?`<p class="livedot" style="margin:8px 0 0">${fmt(S(id).now)} playing now · ${fmt(S(id).today)} today${ST.demo?' (demo)':''}</p>`:(S(id).waiting?`<p style="margin:8px 0 0;font-weight:700;color:var(--ink-2)">${fmt(S(id).waiting)} people waiting${ST.demo?' (demo)':''}</p>`:'')}<p>${esc(g.about||'')}</p>
+    ${howTo(g)}${(g.buys&&g.buys.length)?`<p style="margin:12px 0 0;font-weight:800">What Tokens buy in this game</p><ul>${g.buys.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>`:''}
+    <div class="acts">${main}<a class="btn alt" href="#tokens" data-close>Recharge card</a></div>
+    <p class="note">Android only at launch. Your Tokens and progress stay on your Gametro Card.</p></div>`);
 }
 function checkout(kind, ref){
   if(!U.name){ signIn(()=>checkout(kind,ref)); return; }
-  const price = kind==='pack' ? PACKS[ref].p : GAMES.find(g=>g.id===ref).price;
-  const what = kind==='pack' ? `${fmt(PACKS[ref].t)} Tokens` : GAMES.find(g=>g.id===ref).n;
+  const g = kind==='game' ? GAMES.find(x=>x.id===ref) : null;
+  const price = kind==='pack' ? PACKS[ref].p : g.price;
+  const what = kind==='pack' ? `${fmt(PACKS[ref].t)} Tokens` : g.n;
   const gst = Math.round(price - price/1.18);
-  openDlg(`<div class="in"><div class="eyebrow">Checkout</div><h3>${what}</h3>
+  openDlg(`<div class="in"><div class="eyebrow">${kind==='pack'?'Recharge your card':'Checkout'}</div><h3>${esc(what)}</h3>
     <div class="paylist">
       <label><input type="radio" name="pay" id="pay-upi" checked> UPI (GPay, PhonePe, Paytm)</label>
       <label><input type="radio" name="pay" id="pay-card"> Debit or credit card</label>
@@ -399,7 +701,7 @@ function signIn(next){
   setTimeout(()=>$('nm').focus(),50);
 }
 const PAGES = {
-  about:['About Gametro9','An independent game studio making original mobile games. Every game is free or low-cost to start, and one Token wallet works across all of them.'],
+  about:['About Gametro9','An independent game studio making original mobile games. Every game is a station, every kind of game has its own line, and one Gametro Card holds your Tokens for all of them.'],
   privacy:['Privacy policy','Draft placeholder. The live site will explain what data is collected (name, phone, purchases, game progress), why, how long it is kept, and how to delete your account.'],
   terms:['Terms of use','Draft placeholder. Tokens are a licence to use in-game items. They have no cash value and cannot be withdrawn, transferred or sold.'],
   refund:['Refund policy','Draft placeholder. Unused Tokens can be refunded within 7 days of purchase. Contact support with your order number.'],
@@ -410,25 +712,39 @@ document.addEventListener('click',e=>{
   const t=e.target;
   if(t.closest('[data-close]')){ closeDlg(); return; }
   const g=t.closest('[data-game]'); if(g){ gamePage(g.dataset.game); return; }
+  const ln=t.closest('[data-line]'); if(ln){ linePage(ln.dataset.line); return; }
   const p=t.closest('[data-pack]'); if(p){ checkout('pack',+p.dataset.pack); return; }
   const bg=t.closest('[data-buygame]'); if(bg){ checkout('game',bg.dataset.buygame); return; }
   const get=t.closest('[data-get]'); if(get){ const id=get.dataset.get;
     const add=()=>{ if(!U.owned.includes(id)) U.owned.push(id); save(); renderAll(); gamePage(id); toast('Added to my games'); };
     if(!U.name){ signIn(add); return; } add(); return; }
-  const nt=t.closest('[data-notify]'); if(nt){ U.notify.push(nt.dataset.notify); save(); gamePage(nt.dataset.notify); toast('We will tell you when it launches'); return; }
+  const nt=t.closest('[data-notify]'); if(nt){ if(!U.notify.includes(nt.dataset.notify)) U.notify.push(nt.dataset.notify); save(); gamePage(nt.dataset.notify); toast('We will tell you when it opens'); return; }
   const pay=t.closest('[data-pay]'); if(pay){ const [k,r]=pay.dataset.pay.split(':');
-    if(k==='pack'){ U.tokens+=PACKS[+r].t; toast(`+${fmt(PACKS[+r].t)} Tokens added`); closeDlg(); }
+    if(k==='pack'){ U.tokens+=PACKS[+r].t; toast(`+${fmt(PACKS[+r].t)} Tokens on your card`); closeDlg(); }
     else { if(!U.owned.includes(r)) U.owned.push(r); toast('Bought. It is in my games.'); gamePage(r); }
     save(); renderAll(); return; }
   const pg=t.closest('[data-page]'); if(pg){ const [h,b]=PAGES[pg.dataset.page]; openDlg(`<div class="in"><h3>${h}</h3><p>${b}</p></div>`); return; }
-  const l=t.closest('[data-l]'); if(l && l.dataset.l){ letter = letter===l.dataset.l ? '' : l.dataset.l; renderAZ(); renderGrid(); return; }
-  const f=t.closest('[data-f]'); if(f){ filter=f.dataset.f; document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b===f)); renderGrid(); return; }
+  const dd=t.closest('[data-dd]'); if(dd){ openPicker(dd.dataset.dd); return; }
+  const pk=t.closest('[data-pick]'); if(pk){ const [k,v]=pk.dataset.pick.split(':'); if(k==='line') line=v; else if(k==='mode') mode=v; else lvl=v; shown=PAGE; renderChips(); renderModeChips(); renderGrid(); closeDlg(); return; }
+  const mf=t.closest('[data-mf]'); if(mf){ mode=mf.dataset.mf; shown=PAGE; renderModeChips(); renderGrid(); return; }
+  const lvf=t.closest('[data-lvf]'); if(lvf){ lvl=lvf.dataset.lvf; shown=PAGE; renderModeChips(); renderGrid(); return; }
+  const lf=t.closest('[data-lf]'); if(lf){ line=lf.dataset.lf; shown=PAGE; renderChips(); renderGrid(); return; }
+  const l=t.closest('[data-l]'); if(l && l.dataset.l){ letter = letter===l.dataset.l ? '' : l.dataset.l; shown=PAGE; renderAZ(); renderGrid(); return; }
+  const f=t.closest('[data-f]'); if(f){ filter=f.dataset.f; shown=PAGE; document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b===f)); renderGrid(); return; }
 });
+$('moreBtn').addEventListener('click',()=>{ shown+=PAGE; renderGrid(); });
+$('clearBtn').addEventListener('click',()=>{ line='';mode='';lvl='';q='';filter='all';shown=PAGE; $('q').value='';
+  document.querySelectorAll('#filters button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.f==='all')); renderChips(); renderModeChips(); renderGrid(); });
+$('q').addEventListener('input',e=>{ q=e.target.value; shown=PAGE; renderGrid(); });
 $('scrim').addEventListener('click',e=>{ if(e.target.id==='scrim') closeDlg(); });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDlg(); });
-$('signBtn').addEventListener('click',()=>{ if(U.name){ openDlg(`<div class="in"><h3>${U.name}</h3><p style="color:var(--ink-2)">${fmt(U.tokens)} Tokens · ${U.owned.length} games</p><div class="acts"><button class="btn alt" id="out">Sign out</button></div></div>`); $('out').onclick=()=>{ U={name:'',tokens:0,owned:[],notify:[]}; save(); renderAll(); closeDlg(); toast('Signed out'); }; } else signIn(); });
+$('signBtn').addEventListener('click',()=>{ if(U.name){ openDlg(`<div class="in"><h3>${esc(U.name)}</h3><p style="color:var(--ink-2)">${fmt(U.tokens)} Tokens · ${U.owned.length} games</p><div class="acts"><button class="btn alt" id="out">Sign out</button></div></div>`); $('out').onclick=()=>{ U={name:'',tokens:0,owned:[],notify:[]}; save(); renderAll(); closeDlg(); toast('Signed out'); }; } else signIn(); });
 $('walletBtn').addEventListener('click',()=>document.getElementById('tokens').scrollIntoView({behavior:'smooth'}));
+ST = CFG.demo ? demoStats() : ST;
 renderAll();
+loadStats();
+setInterval(loadStats,Math.max(10,CFG.refreshSeconds)*1000);
+setInterval(drift,4000);
 </script>
 </body>
 </html>
