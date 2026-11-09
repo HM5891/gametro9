@@ -782,7 +782,7 @@ function signIn(next){ afterSign=next||null;
   const has=!!(U.name&&U.card);
   openDlg(`<div class="pick"><div class="phead"><div class="eyebrow">Gametro9 Card</div><h3>${has?'Your card':'Create your card'}</h3>${has?`<p style="margin:6px 0 0;font-family:var(--f-sign);color:var(--sun);font-weight:700">${esc(U.card)}</p>`:''}</div><div class="in">
     <p style="margin:4px 0 0;color:var(--ink-2)">${has?'Your card is saved on this phone. Copy your backup code and keep it somewhere safe (for example, send it to yourself on WhatsApp). It moves your card to a new phone.':'Your card holds your Tokens and progress. It is saved on this phone. No phone number needed.'}</p>
-    <form id="signForm"><label class="field">Name on card<input id="nm" autocomplete="name" required minlength="2" maxlength="24" placeholder="e.g. Harkishansingh" value="${esc(U.name)}"></label>
+    <form id="signForm"><label class="field">Name on card<input id="nm" autocomplete="name" required minlength="2" maxlength="24" placeholder="Enter your name" value="${esc(U.name)}"></label>
     <div class="acts"><button class="btn" type="submit">${has?'Save name':'Create my card'}</button></div></form>
     ${has?`<label class="field" style="margin-top:18px">Backup code<textarea id="bk" readonly rows="3" style="font:inherit;font-size:12.5px;border:2.5px solid var(--edge);background:var(--bg);color:var(--ink);border-radius:12px;padding:10px 12px;resize:none">${esc(backupCode())}</textarea></label>
     <div class="acts"><button class="btn alt" type="button" id="cpy">Copy backup code</button><button class="btn alt" type="button" id="rst">Restore a card</button></div>
@@ -901,7 +901,7 @@ function newCardId(){ const a=new Uint32Array(2); (crypto.getRandomValues?crypto
 function obCardStep(err=''){
   obShow(`<div class="obs"><div class="obtop"><span class="eyebrow">Step 2 of 2</span><span></span></div>
     <h2 style="margin-top:6px">Create your Gametro9 Card</h2><p class="sub">Your card holds your Tokens and progress. It's saved on this phone. No phone number, no OTP.</p>
-    <form id="obCardF"><label class="ofield"><span>Name on your card</span><input class="oname" id="obNm" autocomplete="name" maxlength="24" placeholder="e.g. Harkishansingh" autofocus></label>
+    <form id="obCardF"><label class="ofield"><span>Name on your card</span><input class="oname" id="obNm" autocomplete="name" maxlength="24" placeholder="Enter your name" autofocus></label>
     <div class="oerr" id="obNErr">${esc(err)}</div><div class="grow"></div>
     <button class="btn big" type="submit">Create my card</button></form>
     <p class="legal">Already have a card? <button class="lnk" type="button" data-ob="restore">Restore from backup code</button></p></div>`);

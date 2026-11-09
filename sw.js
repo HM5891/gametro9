@@ -1,6 +1,6 @@
 /* Gametro9 offline helper. Keeps the site and games working with weak or no internet.
    Bump VERSION whenever you upload big changes, so phones pick up the new files. */
-const VERSION = 'g9-v4';
+const VERSION = 'g9-v5';
 const SHELL = ['./', './index.html', './games.js', './stats.js', './favicon.svg',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './play/chai-empire/'];
 
