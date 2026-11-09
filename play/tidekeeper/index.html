@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tidekeeper · Gametro9</title>
+<meta name="theme-color" content="#0b2140">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#9fc3e0}
+html,body{height:100%;margin:0}
+body{background:#0b2140;color:#eaf4ff;font-family:'Figtree',system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:2px max(16px,env(safe-area-inset-right,0px)) 8px max(16px,env(safe-area-inset-left,0px))}
+.hud b{font:800 28px/1 'Bricolage Grotesque','Arial Black',sans-serif;font-variant-numeric:tabular-nums}
+.hud small{display:block;font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.1em;color:#9fc3e0;text-transform:uppercase}
+.lives{display:flex;gap:6px}
+.lives i{width:14px;height:22px;border-radius:3px 3px 1px 1px;background:repeating-linear-gradient(#fff 0 5px,#e2453a 5px 10px);border:2px solid #04101f}
+.lives i.off{opacity:.2}
+#cv{flex:1;width:100%;display:block;touch-action:none}
+.tip{position:absolute;left:0;right:0;bottom:calc(18px + env(safe-area-inset-bottom,0px));text-align:center;font-weight:700;color:#cfe5f7;opacity:.85;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="hud"><div><small>Ships home</small><b id="score">0</b></div><div style="text-align:center"><small>Storm</small><b id="storm" style="font-size:20px">1</b></div><div><small style="text-align:right">Lights</small><div class="lives" id="lives"></div></div></div>
+<canvas id="cv" aria-label="Tidekeeper: tap to flash the lighthouse beam"></canvas>
+<div class="tip" id="tip">Tap anywhere to flash the beam when it covers a ship</div>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'P-01',line:'Puzzle line',color:'#2f5bff'});
+const cv=document.getElementById('cv'); let S=G9.canvas(cv);
+const LV={Easy:{beam:1.0,ship:26,width:.42,gap:2.6},Normal:{beam:1.35,ship:34,width:.34,gap:2.1},Hard:{beam:1.8,ship:44,width:.27,gap:1.6}};
+let cfg,level,ang,ships,score,lives,storm,flash,spawnT,combo,run,last,rain,popups,cool=0;
+const best=lv=>G9.load('tide-best',{})[lv]||0;
+function reset(lv){ level=lv; cfg=LV[lv]; ang=0; ships=[]; score=0; lives=3; storm=1; flash=0; spawnT=0.8; combo=0; rain=[]; popups=[]; run=true; last=performance.now(); hud(); requestAnimationFrame(loop); }
+function hud(){ document.getElementById('score').textContent=score; document.getElementById('storm').textContent=storm;
+  document.getElementById('lives').innerHTML=[0,1,2].map(i=>`<i class="${i<lives?'':'off'}"></i>`).join(''); }
+const C=()=>({x:S.w/2,y:S.h*0.52}); const R=()=>Math.min(S.w,S.h);
+function spawn(){ const a=Math.random()*Math.PI*2, far=R()*0.75; ships.push({a,d:far,v:cfg.ship*(0.85+Math.random()*0.35)*(1+storm*0.08),state:'in',t:0,sway:Math.random()*6}); }
+function angDiff(a,b){ let d=(a-b)%(Math.PI*2); if(d<-Math.PI) d+=Math.PI*2; if(d>Math.PI) d-=Math.PI*2; return Math.abs(d); }
+function tap(){ if(!run||cool>0) return; flash=0.22; cool=0.6; document.getElementById('tip').style.display='none';
+  let hit=0; ships.forEach(s=>{ if(s.state==='in'&&angDiff(s.a,ang)<cfg.width){ s.state='home'; s.t=0; hit++; } });
+  if(hit){ combo+=hit; const pts=hit*10+Math.max(0,combo-1)*2; score+=pts; popups.push({a:ang,t:0,txt:'+'+pts}); G9.vibrate(15);
+    const ns=1+Math.floor(score/80); if(ns>storm){ storm=ns; G9.toast('Storm '+storm+': ships come faster'); } }
+  else { combo=0; }
+  hud(); }
+cv.addEventListener('pointerdown',e=>{ e.preventDefault(); tap(); });
+document.addEventListener('keydown',e=>{ if(e.code==='Space'){ e.preventDefault(); tap(); } });
+function loop(now){ if(!run) return; const dt=Math.min(0.05,(now-last)/1000); last=now; update(dt); draw(); requestAnimationFrame(loop); }
+function update(dt){ ang=(ang+dt*cfg.beam*(1+storm*0.06))%(Math.PI*2); flash=Math.max(0,flash-dt); cool=Math.max(0,cool-dt);
+  spawnT-=dt; if(spawnT<=0){ spawn(); spawnT=cfg.gap/(1+storm*0.12)*(0.7+Math.random()*0.6); }
+  const rock=R()*0.17;
+  ships.forEach(s=>{ s.t+=dt; if(s.state==='in'){ s.d-=s.v*dt; if(s.d<=rock){ s.state='wreck'; s.t=0; lives--; combo=0; G9.vibrate([40,40,40]); hud(); if(lives<=0) end(); } }
+    else if(s.state==='home'){ s.d-=s.v*1.6*dt; s.a+=dt*0.9; } });
+  ships=ships.filter(s=>!(s.state==='home'&&s.d<R()*0.12)&&!(s.state==='wreck'&&s.t>1.2));
+  if(Math.random()<0.4+storm*0.15) rain.push({x:Math.random()*S.w,y:-10,v:400+Math.random()*300});
+  rain.forEach(r=>{ r.y+=r.v*dt; r.x-=r.v*dt*0.25; }); rain=rain.filter(r=>r.y<S.h+10);
+  popups.forEach(p=>p.t+=dt); popups=popups.filter(p=>p.t<1); }
+function draw(){ const g=S.ctx, c=C(), r=R(); g.clearRect(0,0,S.w,S.h);
+  const sea=g.createRadialGradient(c.x,c.y,r*0.1,c.x,c.y,Math.max(S.w,S.h)*0.8); sea.addColorStop(0,'#16507a'); sea.addColorStop(1,'#061a33'); g.fillStyle=sea; g.fillRect(0,0,S.w,S.h);
+  g.strokeStyle='rgba(160,210,255,.12)'; g.lineWidth=2; const t=performance.now()/1000;
+  for(let k=1;k<9;k++){ g.beginPath(); g.arc(c.x,c.y,r*0.12*k+Math.sin(t+k)*4,0,Math.PI*2); g.stroke(); }
+  // beam
+  const bl=Math.max(S.w,S.h); g.save(); g.translate(c.x,c.y);
+  const bw=cfg.width*(flash>0?1.15:1); const grd=g.createRadialGradient(0,0,10,0,0,bl); grd.addColorStop(0,`rgba(255,240,170,${flash>0?.85:.42})`); grd.addColorStop(1,'rgba(255,240,170,0)');
+  g.fillStyle=grd; g.beginPath(); g.moveTo(0,0); g.arc(0,0,bl,ang-bw,ang+bw); g.closePath(); g.fill(); g.restore();
+  // rocks ring
+  const rock=r*0.17; for(let k=0;k<14;k++){ const a=k/14*Math.PI*2+0.2; g.fillStyle='#2a3a4c'; g.beginPath(); g.arc(c.x+Math.cos(a)*rock,c.y+Math.sin(a)*rock,6+(k%3)*2,0,Math.PI*2); g.fill(); }
+  // island + lighthouse
+  g.fillStyle='#e8c98a'; g.beginPath(); g.arc(c.x,c.y,r*0.1,0,Math.PI*2); g.fill(); g.fillStyle='#5ca15a'; g.beginPath(); g.arc(c.x,c.y,r*0.075,0,Math.PI*2); g.fill();
+  const lh=r*0.11, lw=r*0.03; for(let k=0;k<4;k++){ g.fillStyle=k%2?'#e2453a':'#fff'; g.fillRect(c.x-lw/2,c.y-lh+k*lh/4*0.9,lw,lh/4*0.9); }
+  g.fillStyle=flash>0?'#fff6c4':(cool>0?'#8a7a3a':'#ffd84d'); g.beginPath(); g.arc(c.x,c.y-lh,lw*0.75,0,Math.PI*2); g.fill();
+  // ships
+  ships.forEach(s=>{ const x=c.x+Math.cos(s.a)*s.d, y=c.y+Math.sin(s.a)*s.d+Math.sin(t*2+s.sway)*2; g.save(); g.translate(x,y); g.rotate(s.a+Math.PI);
+    const k=Math.max(10,r*0.03); if(s.state==='wreck'){ g.globalAlpha=Math.max(0,1-s.t); g.rotate(s.t*2); }
+    g.fillStyle=s.state==='home'?'#ffd84d':'#7a4b2a'; g.strokeStyle='#04101f'; g.lineWidth=2;
+    g.beginPath(); g.moveTo(-k,-k*0.45); g.lineTo(k,-k*0.45); g.lineTo(k*0.6,k*0.45); g.lineTo(-k*0.6,k*0.45); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle='#fff'; g.beginPath(); g.moveTo(0,-k*0.45); g.lineTo(0,-k*1.6); g.lineTo(k*0.8,-k*0.5); g.closePath(); g.fill(); g.stroke(); g.restore(); });
+  // rain + popups
+  g.strokeStyle='rgba(200,225,255,.35)'; g.lineWidth=1.2; g.beginPath(); rain.forEach(q=>{ g.moveTo(q.x,q.y); g.lineTo(q.x-4,q.y+14); }); g.stroke();
+  g.font="800 22px 'Bricolage Grotesque',sans-serif"; g.textAlign='center';
+  popups.forEach(p=>{ g.fillStyle=`rgba(255,216,77,${1-p.t})`; g.fillText(p.txt,c.x+Math.cos(p.a)*r*0.3,c.y+Math.sin(p.a)*r*0.3-p.t*30); });
+}
+function end(){ run=false; const b=G9.load('tide-best',{}); const nb=score>(b[level]||0); if(nb){ b[level]=score; G9.save('tide-best',b); }
+  G9.over({title:nb?'New best!':'The light went out',sub:`${level} · Storm ${storm}`,stats:[['Ships home',score],['Best',Math.max(score,best(level))]],onRetry:()=>reset(level),onMenu:menu}); }
+function menu(){ run=false; G9.menu({id:'tide',title:'Tidekeeper',code:'P-01',hook:'Guide every ship home through the storm.',
+  how:'The lighthouse beam sweeps around. <b>Tap when the beam covers a ship</b> to guide it home. The light needs a moment to recharge after each flash, so time it. Ships that reach the rocks are lost. Lose 3 and the light goes out.',
+  levels:['Easy','Normal','Hard'],best:lv=>best(lv)?`Best on ${lv}: ${best(lv)} ships`:'',onStart:lv=>reset(lv)}); }
+ang=0; ships=[]; flash=0; rain=[]; popups=[]; cfg=LV.Easy; draw(); menu();
+</script>
+</body>
+</html>

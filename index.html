@@ -648,8 +648,8 @@ function renderBoard(){
     `<div class="bfoot"><span>${fmt(GAMES.length)} stations · ${fmt(LINES.length)} lines${ST&&ST.online?` · ${fmt(ST.online)} playing now`:''}</span><button data-jump="stations">Full timetable</button></div>`;
 }
 function renderFeats(){
-  const open=GAMES.filter(g=>g.st==='open');
-  $('openTitle').textContent=open.length===1?'Ready to board':`${open.length} games ready to board`;
+  const all=GAMES.filter(g=>g.st==='open'), lp=lastPlayed(); const open=[...all].sort((a,b)=>(b.id===lp)-(a.id===lp)).slice(0,3);
+  $('openTitle').textContent=all.length===1?'Ready to board':`${all.length} games ready to board`;
   $('feats').innerHTML=open.length?open.map(g=>{ const L=lineOf(g);
     return `<article class="feat stk">${art(g)}<div class="info">
       <div class="lb"><span class="mk badge" style="--lc:${L.color};min-width:30px;height:24px">${esc(L.code)}</span>${g.code} · ${esc(L.name)} line</div>
@@ -657,6 +657,7 @@ function renderFeats(){
       <div class="facts"><span><i></i>${ST&&now(g.id)?`${fmt(now(g.id))} playing now`:'Open now'}</span><span>${priceLabel(g)} to play</span><span>Plays in your browser</span></div>
       <div class="acts">${playLink(g)}<button class="btn alt" data-game="${g.id}">Station details</button></div></div></article>`; }).join('')
     :`<div class="none"><b>The first station opens soon</b>Watch a station below and it'll show up in My trips.</div>`;
+  if(all.length>3) $('feats').insertAdjacentHTML('beforeend',`<div style="display:flex;justify-content:center"><a class="btn alt" href="#stations">See all ${all.length} open stations</a></div>`);
 }
 /* network map */
 function renderNet(){
@@ -700,7 +701,7 @@ function openPicker(kind){
   else if(kind==='mode'){ title='How do you want to play?'; cur=mode;
     items=[{...all,t:'Any',sub:'All games',mk:'<span class="mk ico">'+ICON.multi+'</span>'},
       {v:'single',t:'Single player',sub:'Play on your own',n:GAMES.filter(g=>modesOf(g).includes('single')).length,mk:modeMark('single')},
-      {v:'multi',t:'Multiplayer',sub:'Play with friends and other players',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
+      {v:'multi',t:'Multiplayer',sub:'Play with a friend',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
   else { title='Pick a level'; cur=lvl;
     const SUB={Easy:'Relaxed, good for beginners',Normal:'The standard challenge',Hard:'For experienced players',Expert:'Only for the best'};
     items=[{...all,t:'Any level',sub:'All games',mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V5M13 13V2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>'}]
@@ -720,7 +721,7 @@ function cardHTML(g){ const L=lineOf(g), w=(U.watch||[]).includes(g.id);
       <div class="foot">${g.st==='open'&&ST&&now(g.id)?`<span class="live">${fmt(now(g.id))} playing</span>`:`<span class="tag" style="background:none;padding:0;color:var(--ink-2)">${esc(g.genre)}</span>`}${act}</div></div></button>`; }
 function renderGrid(){
   const list=matches(), open=GAMES.filter(g=>g.st==='open').length;
-  $('countLine').textContent=`${fmt(open)} open now · ${fmt(GAMES.filter(g=>g.st==='boarding').length)} boarding soon · ${fmt(GAMES.filter(g=>g.st==='construction').length)} under construction`;
+  $('countLine').textContent=[[open,'open now'],[GAMES.filter(g=>g.st==='boarding').length,'boarding soon'],[GAMES.filter(g=>g.st==='construction').length,'under construction']].filter(([n])=>n).map(([n,t])=>`${fmt(n)} ${t}`).join(' · ');
   $('grid').innerHTML=list.length?list.slice(0,shown).map(cardHTML).join('')
     :`<div class="none"><b>No station by that name</b>Try another word, or clear the filters to see every line.</div>`;
   const act=[line&&lineOf({line}).name,stat&&STAT_NAME[stat],mode&&MODE_NAME[mode],lvl,q.trim()&&`"${q.trim()}"`].filter(Boolean);
@@ -769,7 +770,7 @@ function gamePage(id){ const g=GAMES.find(x=>x.id===id); if(!g) return; const L=
     <h3>${esc(g.n)}</h3><p class="hook">${esc(g.tagline||'')}</p>
     ${g.st==='open'&&ST&&now(id)?`<p style="margin:8px 0 0;font-weight:800;color:var(--open)">${fmt(now(id))} playing now</p>`:''}
     <p>${esc(g.about||'')}</p>${howTo(g)}
-    ${(g.buys&&g.buys.length)?`<p style="margin:14px 0 0;font-weight:800">What Tokens buy here</p><ul>${g.buys.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>`:''}
+    ${(g.buys&&g.buys.length)?`<p style="margin:14px 0 0;font-weight:800">${g.shop?'What Tokens buy here':'Coming soon to the Token shop'}</p><ul>${g.buys.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>`:''}
     <div class="acts">${main}<a class="btn alt" href="#card" data-close>Gametro9 Card</a></div>
     ${g.st!=='open'?`<p class="note">${g.st==='boarding'?'This station is launching soon.':'This station is still being built.'} Watching keeps it in My trips on this phone.</p>`:''}</div>`); }
 function packPage(i){ const p=PACKS[i];

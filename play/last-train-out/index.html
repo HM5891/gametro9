@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Last Train Out · Gametro9</title>
+<meta name="theme-color" content="#2a1b2a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#f3b48a;--ink:#14163a}
+html,body{min-height:100%;margin:0}
+body{background:linear-gradient(#e46d2b,#8e2f3c 45%,#2a1b2a 80%) fixed;color:#fff3e8;font-family:'Figtree',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+main{max-width:520px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.dist{display:flex;justify-content:space-between;align-items:flex-end}
+.dist small{display:block;font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.1em;color:#ffd7b8;text-transform:uppercase}
+.dist b{font:800 34px/1 'Bricolage Grotesque','Arial Black',sans-serif;font-variant-numeric:tabular-nums}
+.train{position:relative;height:58px;overflow:hidden;border-radius:14px;background:rgba(0,0,0,.18)}
+.train .rail{position:absolute;left:0;right:0;bottom:8px;height:6px;background:repeating-linear-gradient(90deg,#3b2a1e 0 10px,transparent 10px 26px)}
+.cars{position:absolute;left:12px;bottom:14px;display:flex;gap:6px;transition:transform .5s ease}
+.car{width:46px;height:28px;border-radius:7px;background:#1f2933;border:2.5px solid #0f1419;position:relative}
+.car::after{content:"";position:absolute;left:6px;right:6px;top:5px;height:8px;border-radius:2px;background:#ffd23f;opacity:.75}
+.car.eng{width:56px;background:#c0392b}
+.car.now{box-shadow:0 0 0 3px #ffd23f}
+.res{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.r{background:rgba(255,255,255,.1);border-radius:12px;padding:8px}
+.r span{display:flex;justify-content:space-between;font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.06em}
+.r i{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.18);margin-top:6px;overflow:hidden}
+.r i b{display:block;height:100%;transition:width .3s}
+.r.low{box-shadow:0 0 0 2px #ff4d3d inset}
+.card{background:#fff8f0;color:var(--ink);border:3px solid var(--ink);box-shadow:6px 6px 0 #140a14;border-radius:22px;overflow:hidden;animation:in .3s ease-out}
+@keyframes in{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.card .hd{background:var(--ink);color:#fff;padding:14px 16px}
+.card .hd small{font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.1em;color:#ffb347;text-transform:uppercase}
+.card .hd h2{margin:4px 0 0;font:800 26px/1.05 'Bricolage Grotesque',sans-serif}
+.card .bd{padding:14px 16px 16px}
+.card p{margin:0 0 12px;font-size:15.5px;line-height:1.45;color:#3c3f63}
+.opt{display:block;width:100%;text-align:left;margin-top:10px;border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);background:#fff;border-radius:14px;padding:11px 13px;cursor:pointer;font:inherit;color:var(--ink)}
+.opt:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.opt b{display:block;font-size:16px}
+.opt small{display:block;margin-top:3px;font-weight:700;font-size:13px;color:#565a7e}
+.opt:disabled{opacity:.4;cursor:default}
+.res-text{font-weight:700;font-size:15px;color:#3c3f63;margin:0}
+.go{display:block;width:100%;margin-top:14px;border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);background:#e46d2b;color:#fff;border-radius:14px;padding:13px;font:800 17px 'Figtree',sans-serif;cursor:pointer}
+.up{color:#0f8a52}.dn{color:#c0392b}
+.shop{display:grid;gap:8px;margin-top:6px}
+</style>
+</head>
+<body>
+<main>
+  <div class="dist"><div><small>Carriage</small><b id="dist">0</b></div><div style="text-align:right"><small>Scrap</small><b id="scrap" style="font-size:24px">0</b></div></div>
+  <div class="train" aria-hidden="true"><div class="rail"></div><div class="cars" id="cars"></div></div>
+  <div class="res" id="res"></div>
+  <div id="stage"></div>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'A-03',line:'Action & Battle line',color:'#13a05c'});
+const $=id=>document.getElementById(id);
+const LV={Normal:{d:1},Hard:{d:1.35},Expert:{d:1.7}};
+const R={hp:['Health','#5ee08f'],fuel:['Fuel','#ffd23f'],food:['Food','#ff9f5a'],morale:['Crew','#7ab8ff']};
+let st,level,dist,scrap,meta;
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const hurt=n=>Math.round(n*LV[level].d);
+/* events: each option = {t,sub,fx:(st)=>resultText} */
+const EVENTS=[
+ ()=>({h:'Raiders on the roof',p:'Boots thunder overhead. A gang wants your cargo.',o:[
+   {t:'Fight them off',sub:`Lose ~${hurt(3)} health · gain scrap`,fx:()=>{ const d=hurt(rnd(2,4)); add('hp',-d); const s=rnd(3,6); scrap+=s; return `You drove them off. -${d} health, +${s} scrap.`; }},
+   {t:'Hand over supplies',sub:'Lose 3 food',fx:()=>{ add('food',-3); return 'They grab the food and jump off. -3 food.'; }}]}),
+ ()=>({h:'Abandoned depot',p:'A dark fuel depot beside the track. Something moves inside.',o:[
+   {t:'Search it',sub:'Fuel or trouble',fx:()=>{ if(Math.random()<0.6){ const f=rnd(3,5); add('fuel',f); return `Full barrels! +${f} fuel.`; } const d=hurt(2); add('hp',-d); return `An ambush. -${d} health.`; }},
+   {t:'Keep moving',sub:'Safe',fx:()=>'You roll past. Better safe.'}]}),
+ ()=>({h:'A stranger flags you down',p:'A tired traveller begs to board.',o:[
+   {t:'Let them on',sub:'Lose 2 food · crew +2',fx:()=>{ add('food',-2); add('morale',2); if(Math.random()<0.35){ const s=rnd(4,7); scrap+=s; return `They were a mechanic! +2 crew, +${s} scrap.`; } return 'Grateful company. -2 food, +2 crew.'; }},
+   {t:'Leave them',sub:'Crew -1',fx:()=>{ add('morale',-1); return 'The crew goes quiet. -1 crew.'; }}]}),
+ ()=>({h:'Coal wagon',p:'An uncoupled coal wagon sits on a siding.',o:[
+   {t:'Hook it up',sub:'+4 fuel · slower',fx:()=>{ add('fuel',4); add('food',-1); return '+4 fuel. The extra weight costs a day: -1 food.'; }},
+   {t:'Strip it for parts',sub:'+scrap',fx:()=>{ const s=rnd(4,6); scrap+=s; return `+${s} scrap.`; }}]}),
+ ()=>({h:'Travelling medic',p:'A medic offers help, for a price.',o:[
+   {t:'Pay 5 scrap',sub:'+4 health',need:()=>scrap>=5,fx:()=>{ scrap-=5; add('hp',4); return 'Patched up. +4 health.'; }},
+   {t:'Trade 2 food',sub:'+2 health',fx:()=>{ add('food',-2); add('hp',2); return '+2 health, -2 food.'; }},
+   {t:'No thanks',sub:'Move on',fx:()=>'You wave them off.'}]}),
+ ()=>({h:'Broken bridge ahead',p:'The bridge is cracked. A long detour runs around the canyon.',o:[
+   {t:'Risk the bridge',sub:'Fast, or a big hit',fx:()=>{ if(Math.random()<0.55){ dist++; return 'You made it across! Skipped a carriage ahead.'; } const d=hurt(4); add('hp',-d); return `The bridge buckles. -${d} health.`; }},
+   {t:'Take the detour',sub:'Lose 3 fuel',fx:()=>{ add('fuel',-3); return 'A slow, safe detour. -3 fuel.'; }}]}),
+ ()=>({h:'Dust storm',p:'Sand screams against the windows.',o:[
+   {t:'Push through',sub:`Lose ~${hurt(2)} health`,fx:()=>{ const d=hurt(rnd(1,3)); add('hp',-d); return `You punch through. -${d} health.`; }},
+   {t:'Wait it out',sub:'Lose 2 food',fx:()=>{ add('food',-2); return 'Hours pass. -2 food.'; }}]}),
+ ()=>({h:'Trader\'s carriage',p:'A trader rides along, selling supplies.',o:[
+   {t:'Buy fuel (4 scrap)',sub:'+4 fuel',need:()=>scrap>=4,fx:()=>{ scrap-=4; add('fuel',4); return '+4 fuel.'; }},
+   {t:'Buy food (3 scrap)',sub:'+4 food',need:()=>scrap>=3,fx:()=>{ scrap-=3; add('food',4); return '+4 food.'; }},
+   {t:'Sell spare parts',sub:'Crew -1 · +5 scrap',fx:()=>{ add('morale',-1); scrap+=5; return '+5 scrap. The crew grumbles: -1 crew.'; }}]}),
+ ()=>({h:'Silent carriage',p:'A carriage with no lights. The door is unlocked.',o:[
+   {t:'Open it',sub:'Big gamble',fx:()=>{ const r=Math.random(); if(r<0.4){ const s=rnd(8,12); scrap+=s; return `A forgotten stash! +${s} scrap.`; } if(r<0.7){ add('food',3); add('fuel',2); return 'Supplies! +3 food, +2 fuel.'; } const d=hurt(3); add('hp',-d); add('morale',-1); return `Something bit someone. -${d} health, -1 crew.`; }},
+   {t:'Seal it',sub:'Safe',fx:()=>'You weld the door shut and move on.'}]}),
+ ()=>({h:'Orchard by the line',p:'Fruit trees, heavy with fruit.',o:[
+   {t:'Stop and pick',sub:'+4 food · -1 fuel',fx:()=>{ add('food',4); add('fuel',-1); return '+4 food. Restarting cost 1 fuel.'; }},
+   {t:'Grab what you can',sub:'+2 food',fx:()=>{ add('food',2); return '+2 food.'; }}]}),
+ ()=>({h:'Crew argument',p:'Two of the crew are at each other\'s throats.',o:[
+   {t:'Share extra rations',sub:'-2 food · crew +2',fx:()=>{ add('food',-2); add('morale',2); return 'Full bellies, calm heads. +2 crew.'; }},
+   {t:'Let them sort it out',sub:'Risky',fx:()=>{ if(Math.random()<0.5) return 'They shake hands. Phew.'; add('morale',-2); add('hp',-1); return 'It turns into a brawl. -2 crew, -1 health.'; }}]}),
+];
+function add(k,v){ st[k]=G9.clamp(st[k]+v,0,st.max[k]); }
+function render(){ $('dist').textContent=dist; $('scrap').textContent=scrap;
+  $('res').innerHTML=Object.keys(R).map(k=>`<div class="r${st[k]<=2?' low':''}"><span>${R[k][0].toUpperCase()} <em>${st[k]}</em></span><i><b style="width:${st[k]/st.max[k]*100}%;background:${R[k][1]}"></b></i></div>`).join('');
+  $('cars').innerHTML='<div class="car eng"></div>'+Array.from({length:12},(_,i)=>`<div class="car${i===0?' now':''}"></div>`).join(''); }
+function event(){ if(dead()) return; const e=G9.pick(EVENTS)();
+  $('stage').innerHTML=`<div class="card"><div class="hd"><small>Carriage ${dist+1}</small><h2>${e.h}</h2></div><div class="bd"><p>${e.p}</p>${e.o.map((o,i)=>`<button class="opt" data-i="${i}" ${o.need&&!o.need()?'disabled':''}><b>${o.t}</b><small>${o.sub}</small></button>`).join('')}</div></div>`;
+  $('stage').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ const msg=e.o[+b.dataset.i].fx(); travel(msg); }); }
+function travel(msg){ dist++; add('fuel',-1); if(dist%2===0) add('food',-1); let extra='';
+  if(st.food===0){ add('hp',-hurt(1)); extra+=' Nobody has eaten: -health.'; }
+  if(st.morale===0){ add('hp',-1); extra+=' The crew is falling apart: -1 health.'; }
+  render(); if(dead()) return;
+  $('stage').innerHTML=`<div class="card"><div class="hd"><small>Carriage ${dist}</small><h2>Onward</h2></div><div class="bd"><p class="res-text">${msg}${extra}</p><p style="margin:8px 0 0;font-size:13.5px">Each carriage burns 1 fuel. Every second one eats 1 food.</p><button class="go" id="go">Next carriage →</button></div></div>`;
+  $('go').onclick=event; }
+function dead(){ const why=st.hp<=0?'Your crew could not go on':st.fuel<=0?'The engine ran dry':null; if(!why) return false;
+  const bank=Math.floor(scrap*0.5)+dist; meta.bank+=bank; G9.save('train-meta',meta);
+  const b=G9.load('train-best',{}); const nb=dist>(b[level]||0); if(nb){ b[level]=dist; G9.save('train-best',b); }
+  G9.over({tag:'End of the line',title:why,sub:`${level} · ${dist} carriages`,stats:[['Carriages',dist],['Best',Math.max(dist,b[level]||0)]],note:`+${bank} workshop scrap banked for upgrades (${meta.bank} total).`,retry:'Workshop & ride again',onRetry:()=>workshop(),onMenu:menu}); return true; }
+const UP=[{k:'hp',t:'Armour plates',s:'+1 max health'},{k:'fuel',t:'Bigger tank',s:'+1 max fuel'},{k:'food',t:'Pantry car',s:'+1 max food'}];
+const cost=k=>6+meta[k]*5;
+function workshop(){ G9.hide(); $('stage').innerHTML=`<div class="card"><div class="hd"><small>Between runs</small><h2>Workshop</h2></div><div class="bd"><p>Spend workshop scrap on upgrades that last for every future run. You have <b>${meta.bank}</b>.</p>
+  <div class="shop">${UP.map(u=>`<button class="opt" data-k="${u.k}" ${meta.bank<cost(u.k)?'disabled':''}><b>${u.t} · Level ${meta[u.k]}</b><small>${u.s} · costs ${cost(u.k)}</small></button>`).join('')}</div>
+  <button class="go" id="go">Start the run →</button></div></div>`;
+  $('stage').querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{ const k=b.dataset.k; if(meta.bank<cost(k)) return; meta.bank-=cost(k); meta[k]++; G9.save('train-meta',meta); G9.toast('Upgraded!'); workshop(); });
+  $('go').onclick=()=>start(level); }
+function start(lv){ level=lv; dist=0; scrap=3; const m={hp:8+meta.hp,fuel:8+meta.fuel,food:8+meta.food,morale:6};
+  st={hp:m.hp,fuel:m.fuel,food:m.food,morale:4,max:m}; render(); event(); }
+function menu(){ G9.menu({id:'train',title:'Last Train Out',code:'A-03',hook:'One endless train. One choice per carriage.',
+  how:'Every carriage brings a choice. <b>Keep fuel, food, health and crew above zero</b> to keep the train moving. When the run ends, half your scrap goes to the <b>workshop</b> for permanent upgrades.',
+  levels:['Normal','Hard','Expert'],best:lv=>{ const b=G9.load('train-best',{})[lv]; return b?`Best on ${lv}: ${b} carriages`:''; },onStart:lv=>{ level=lv; meta.bank>=6?workshop():start(lv); }}); }
+meta=Object.assign({bank:0,hp:0,fuel:0,food:0},G9.load('train-meta',{}));
+level='Normal'; dist=0; scrap=0; st={hp:8,fuel:8,food:8,morale:4,max:{hp:8,fuel:8,food:8,morale:6}}; render(); menu();
+</script>
+</body>
+</html>

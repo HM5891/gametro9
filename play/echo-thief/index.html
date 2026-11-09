@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Echo Thief · Gametro9</title>
+<meta name="theme-color" content="#071216">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#7fc9b4}
+html,body{height:100%;margin:0}
+body{background:#071216;color:#d8fff3;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 max(16px,env(safe-area-inset-right,0px)) 6px max(16px,env(safe-area-inset-left,0px))}
+.hud small{display:block;font:700 11px 'Overpass Mono',monospace;letter-spacing:.1em;color:#7fc9b4;text-transform:uppercase}
+.hud b{font:800 22px/1 'Bricolage Grotesque','Arial Black',sans-serif}
+.obj{font-weight:800;font-size:14px;color:#ffd23f;text-align:center}
+#cv{flex:1;width:100%;display:block;touch-action:none;min-height:0}
+.ctl{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.pad{display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(2,46px);gap:6px;justify-self:start}
+.pad button{border:2.5px solid #04090b;border-radius:12px;background:#163a33;color:#d8fff3;font:800 20px sans-serif;cursor:pointer;box-shadow:2px 2px 0 #04090b}
+.pad button:active{transform:translate(2px,2px);box-shadow:none}
+.pad .u{grid-column:2}.pad .l{grid-row:2;grid-column:1}.pad .d{grid-row:2;grid-column:2}.pad .r{grid-row:2;grid-column:3}
+.tip{display:flex;flex-direction:column;align-items:center;gap:4px;border:2.5px solid #04090b;border-radius:16px;background:#163a33;color:#d8fff3;padding:10px 14px;font:800 14px 'Figtree',sans-serif;cursor:pointer;box-shadow:3px 3px 0 #04090b}
+.tip[aria-pressed="true"]{background:#78ffd6;color:#071216}
+.tip span{font-size:22px}
+</style>
+</head>
+<body>
+<div class="hud"><div><small>Heist</small><b id="heist">1</b></div><div class="obj" id="obj">Find the gem</div><div style="text-align:right"><small>Loot</small><b id="loot">0</b></div></div>
+<canvas id="cv" aria-label="Echo Thief map. Tap a square next to you, or use the arrows, to move."></canvas>
+<div class="ctl">
+  <div class="pad" aria-label="Move"><button class="u" data-d="0,-1" aria-label="Up">▲</button><button class="l" data-d="-1,0" aria-label="Left">◀</button><button class="d" data-d="0,1" aria-label="Down">▼</button><button class="r" data-d="1,0" aria-label="Right">▶</button></div>
+  <button class="tip" id="tiptoe" aria-pressed="false"><span>👣</span>Tiptoe</button>
+</div>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'A-02',line:'Action & Battle line',color:'#13a05c'});
+const $=id=>document.getElementById(id), cv=$('cv');
+const W=9,H=13; let grid,me,gem,exit,guards,lit,has,heist,lootTotal,level,tip=false,run=false,trail=[],busy=false;
+let S=null; S=G9.canvas(cv,()=>{ if(S&&grid) draw(); });
+const LV={Normal:{g:2,hear:4,walk:3.2},Hard:{g:3,hear:5,walk:3.6}};
+const key=(x,y)=>y*W+x, open=(x,y)=>x>=0&&y>=0&&x<W&&y<H&&!grid[key(x,y)];
+function maze(){ const g=Array(W*H).fill(1); const st=[[1,1]]; g[key(1,1)]=0;
+  while(st.length){ const [x,y]=st[st.length-1]; const n=[[2,0],[-2,0],[0,2],[0,-2]].map(([dx,dy])=>[x+dx,y+dy,x+dx/2,y+dy/2]).filter(([nx,ny])=>nx>0&&ny>0&&nx<W-1&&ny<H-1&&g[key(nx,ny)]);
+    if(!n.length){ st.pop(); continue; } const [nx,ny,mx,my]=G9.pick(n); g[key(nx,ny)]=0; g[key(mx,my)]=0; st.push([nx,ny]); }
+  for(let i=0;i<14;i++){ const x=1+Math.floor(Math.random()*(W-2)), y=1+Math.floor(Math.random()*(H-2)); if((x+y)%2===1) g[key(x,y)]=0; } return g; }
+function bfs(sx,sy,tx,ty){ const prev=new Map(), q=[[sx,sy]]; prev.set(key(sx,sy),null);
+  while(q.length){ const [x,y]=q.shift(); if(x===tx&&y===ty){ const path=[]; let k=key(x,y); while(k!==null){ path.unshift(k); k=prev.get(k); } return path; }
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){ const nx=x+dx,ny=y+dy; if(open(nx,ny)&&!prev.has(key(nx,ny))){ prev.set(key(nx,ny),key(x,y)); q.push([nx,ny]); } } } return null; }
+function newHeist(){ grid=maze(); exit={x:1,y:H-2}; grid[key(exit.x,exit.y)]=0; me={x:exit.x,y:exit.y};
+  let far={x:W-2,y:1}; let best=0; for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){ if(!open(x,y)) continue; const p=bfs(me.x,me.y,x,y); if(p&&p.length>best){ best=p.length; far={x,y}; } } gem=far;
+  const n=LV[level].g+Math.floor((heist-1)/2); guards=[];
+  for(let i=0;i<n;i++){ let x,y,tries=0; do{ x=1+Math.floor(Math.random()*(W-2)); y=1+Math.floor(Math.random()*(H-4)); tries++; }while((!open(x,y)||Math.abs(x-me.x)+Math.abs(y-me.y)<6)&&tries<200);
+    guards.push({x,y,dir:G9.pick([[1,0],[-1,0],[0,1],[0,-1]]),alert:null,seen:0}); }
+  lit=new Float32Array(W*H); has=false; trail=[]; echo(me.x,me.y,3); hud(); draw(); }
+function hud(){ $('heist').textContent=heist; $('loot').textContent=lootTotal; $('obj').textContent=has?'Get back to the exit':'Find the gem'; }
+function echo(x,y,r){ for(let j=0;j<H;j++)for(let i=0;i<W;i++){ const d=Math.hypot(i-x,j-y); if(d<=r) lit[key(i,j)]=Math.max(lit[key(i,j)],1-d/(r+1)*0.5); } trail.push({x,y,r,t:0}); }
+function step(dx,dy){ if(!run||busy) return; const nx=me.x+dx, ny=me.y+dy; if(!open(nx,ny)){ G9.vibrate(20); return; }
+  me.x=nx; me.y=ny; const r=tip?1.6:LV[level].walk; echo(nx,ny,r);
+  if(!tip) guards.forEach(g=>{ if(Math.hypot(g.x-nx,g.y-ny)<=LV[level].hear){ g.alert={x:nx,y:ny}; g.seen=1; } });
+  if(!has&&nx===gem.x&&ny===gem.y){ has=true; G9.vibrate(30); G9.toast('Got the gem! Now get out.'); hud(); }
+  if(has&&nx===exit.x&&ny===exit.y){ lootTotal+=100+heist*25; heist++; G9.toast('Clean getaway!'); hud(); newHeist(); return; }
+  moveGuards(); if(caught()) return lose(); fade(); draw(); }
+function moveGuards(){ guards.forEach(g=>{ let tx,ty;
+  if(g.alert){ const p=bfs(g.x,g.y,g.alert.x,g.alert.y); if(p&&p.length>1){ tx=p[1]%W; ty=Math.floor(p[1]/W); } else g.alert=null; }
+  if(tx===undefined){ const opts=[[1,0],[-1,0],[0,1],[0,-1]].filter(([dx,dy])=>open(g.x+dx,g.y+dy));
+    let d=g.dir; if(!open(g.x+d[0],g.y+d[1])||Math.random()<0.25) d=G9.pick(opts.length?opts:[[0,0]]); g.dir=d; tx=g.x+d[0]; ty=g.y+d[1]; }
+  if(open(tx,ty)){ g.x=tx; g.y=ty; } if(g.alert&&g.x===g.alert.x&&g.y===g.alert.y) g.alert=null; g.seen=Math.max(0,g.seen-0.34); }); }
+function caught(){ return guards.some(g=>Math.abs(g.x-me.x)+Math.abs(g.y-me.y)<=(g.alert?1:0)); }
+function fade(){ for(let i=0;i<lit.length;i++) lit[i]*=0.72; }
+let raf; function anim(){ trail.forEach(t=>t.t+=0.03); trail=trail.filter(t=>t.t<1); draw(); raf=requestAnimationFrame(anim); }
+function draw(){ if(!grid) return; const g=S.ctx, ts=Math.floor(Math.min(S.w/W,S.h/H)), ox=(S.w-ts*W)/2, oy=(S.h-ts*H)/2; g.fillStyle='#071216'; g.fillRect(0,0,S.w,S.h);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){ const k=key(x,y), near=Math.abs(x-me.x)+Math.abs(y-me.y)<=1?0.35:0, a=Math.max(lit[k],near); if(a<0.03) continue;
+    g.fillStyle=grid[k]?`rgba(46,120,104,${a})`:`rgba(20,52,46,${a})`; g.fillRect(ox+x*ts+1,oy+y*ts+1,ts-2,ts-2);
+    if(grid[k]){ g.strokeStyle=`rgba(120,255,214,${a*0.5})`; g.lineWidth=1; g.strokeRect(ox+x*ts+3,oy+y*ts+3,ts-6,ts-6); } }
+  trail.forEach(t=>{ g.strokeStyle=`rgba(120,255,214,${(1-t.t)*0.6})`; g.lineWidth=2; g.beginPath(); g.arc(ox+(t.x+.5)*ts,oy+(t.y+.5)*ts,t.t*t.r*ts,0,7); g.stroke(); });
+  const tt=performance.now()/400;
+  g.fillStyle='#ffd23f'; g.globalAlpha=0.6+Math.sin(tt)*0.2; g.fillRect(ox+exit.x*ts+ts*0.2,oy+exit.y*ts+ts*0.75,ts*0.6,ts*0.12); g.globalAlpha=1;
+  if(!has){ const gx=ox+(gem.x+.5)*ts, gy=oy+(gem.y+.5)*ts, s=ts*0.28*(1+Math.sin(tt*1.5)*0.08); g.fillStyle='#ff5d8f'; g.strokeStyle='#ffe0ea'; g.lineWidth=2; g.beginPath(); g.moveTo(gx,gy-s); g.lineTo(gx+s,gy); g.lineTo(gx,gy+s); g.lineTo(gx-s,gy); g.closePath(); g.fill(); g.stroke(); }
+  guards.forEach(q=>{ const vis=Math.max(lit[key(q.x,q.y)],q.seen); if(vis<0.05) return; const x=ox+(q.x+.5)*ts, y=oy+(q.y+.5)*ts; g.globalAlpha=Math.min(1,vis+0.2);
+    g.fillStyle=q.alert?'#ff4d3d':'#ffb347'; g.beginPath(); g.arc(x,y,ts*0.32,0,7); g.fill(); g.fillStyle='#071216'; g.fillRect(x-ts*0.14,y-ts*0.06,ts*0.28,ts*0.08); if(q.alert){ g.fillStyle='#fff'; g.font=`800 ${ts*0.5}px sans-serif`; g.textAlign='center'; g.fillText('!',x,y-ts*0.45); } g.globalAlpha=1; });
+  const px=ox+(me.x+.5)*ts, py=oy+(me.y+.5)*ts; g.fillStyle='#78ffd6'; g.strokeStyle='#04090b'; g.lineWidth=3; g.beginPath(); g.arc(px,py,ts*0.3,0,7); g.fill(); g.stroke();
+  g.fillStyle='#04090b'; g.fillRect(px-ts*0.2,py-ts*0.08,ts*0.4,ts*0.1); if(has){ g.fillStyle='#ff5d8f'; g.beginPath(); g.arc(px+ts*0.22,py-ts*0.22,ts*0.1,0,7); g.fill(); } }
+function lose(){ run=false; draw(); G9.vibrate([60,40,60]); const b=G9.load('echo-best',{}); const nb=lootTotal>(b[level]||0); if(nb){ b[level]=lootTotal; G9.save('echo-best',b); }
+  setTimeout(()=>G9.over({tag:'Caught',title:'A guard heard you',sub:`${level} · ${heist-1} heist${heist-1===1?'':'s'} done`,stats:[['Loot',lootTotal],['Best',Math.max(lootTotal,b[level]||0)]],note:'Tip: tiptoe near guards. It is quiet, but you see less.',onRetry:()=>start(level),onMenu:menu}),500); }
+document.querySelector('.pad').addEventListener('click',e=>{ const b=e.target.closest('[data-d]'); if(b){ const [dx,dy]=b.dataset.d.split(',').map(Number); step(dx,dy); } });
+$('tiptoe').onclick=()=>{ tip=!tip; $('tiptoe').setAttribute('aria-pressed',tip); G9.toast(tip?'Tiptoe: quiet, but you see less':'Walking: you see more, guards hear you'); };
+document.addEventListener('keydown',e=>{ const m={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]}[e.key]; if(m){ e.preventDefault(); step(...m); } });
+cv.addEventListener('pointerdown',e=>{ if(!run) return; const r=cv.getBoundingClientRect(), ts=Math.floor(Math.min(S.w/W,S.h/H)), ox=(S.w-ts*W)/2, oy=(S.h-ts*H)/2;
+  const x=Math.floor((e.clientX-r.left-ox)/ts), y=Math.floor((e.clientY-r.top-oy)/ts), dx=x-me.x, dy=y-me.y;
+  if(Math.abs(dx)+Math.abs(dy)===1) step(dx,dy); else if(Math.abs(dx)>Math.abs(dy)) step(Math.sign(dx),0); else if(dy) step(0,Math.sign(dy)); });
+function start(lv){ level=lv; heist=1; lootTotal=0; tip=false; $('tiptoe').setAttribute('aria-pressed','false'); run=true; newHeist(); cancelAnimationFrame(raf); anim(); }
+function menu(){ run=false; G9.menu({id:'echo',title:'Echo Thief',code:'A-02',hook:'Every sound you make lights up the room.',
+  how:'The building is dark. <b>Each step sends out a sound ring</b> that shows the walls around you, and any guard who hears it comes looking. Grab the <b>pink gem</b> and get back to the <b>yellow exit</b>. Switch to <b>Tiptoe</b> to stay quiet. Tap a square next to you or use the arrows.',
+  levels:['Normal','Hard'],best:lv=>{ const b=G9.load('echo-best',{})[lv]; return b?`Best loot on ${lv}: ${b}`:''; },onStart:lv=>start(lv)}); }
+level='Normal'; heist=1; lootTotal=0; menu();
+</script>
+</body>
+</html>

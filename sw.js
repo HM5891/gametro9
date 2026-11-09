@@ -2,7 +2,7 @@
    Pages and scripts: always fetch the newest version when online, use the saved copy only when offline.
    Images and fonts: use the saved copy first (fast), refresh in the background.
    Bump VERSION after big uploads. */
-const VERSION = 'g9-v7';
+const VERSION = 'g9-v8';
 const SHELL = ['./', './index.html', './games.js', './stats.js', './favicon.svg',
   './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './play/chai-empire/'];
 

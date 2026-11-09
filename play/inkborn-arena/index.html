@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inkborn Arena · Gametro9</title>
+<meta name="theme-color" content="#2b2d7c">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#c9c3ff;--ink:#14163a}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(160deg,#2b2d7c,#5b2a86);color:#fff;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+main{flex:1;display:flex;flex-direction:column;gap:10px;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));min-height:0}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.head h1{margin:0;font:800 26px/1 'Bricolage Grotesque','Arial Black',sans-serif;letter-spacing:-.02em}
+.head small{display:block;font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.1em;color:#ffd23f;text-transform:uppercase;margin-bottom:4px}
+.round{font:800 15px 'Figtree',sans-serif;background:rgba(255,255,255,.14);padding:5px 10px;border-radius:99px;white-space:nowrap}
+.pad{position:relative;flex:1;min-height:0;background:#fffdf5;border:3px solid var(--ink);box-shadow:5px 5px 0 #0d0e33;border-radius:22px;overflow:hidden}
+.pad canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+.pad .hint{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#9a95c4;font-weight:800;font-size:18px;pointer-events:none;padding:20px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.st{background:rgba(255,255,255,.12);border-radius:12px;padding:8px 10px}
+.st span{display:flex;justify-content:space-between;font:700 12px 'Overpass Mono',monospace;letter-spacing:.06em}
+.st i{display:block;height:7px;border-radius:4px;background:rgba(255,255,255,.18);margin-top:6px;overflow:hidden}
+.st i b{display:block;height:100%;border-radius:4px;transition:width .2s}
+.row{display:flex;gap:10px}
+.inks{display:flex;gap:8px;align-items:center}
+.inks button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;cursor:pointer}
+.inks button[aria-pressed="true"]{box-shadow:0 0 0 3px #ffd23f}
+.btn{flex:1;border:2.5px solid var(--ink);box-shadow:3px 3px 0 #0d0e33;border-radius:14px;padding:13px;font:800 17px 'Figtree',sans-serif;cursor:pointer;background:#ffd23f;color:var(--ink)}
+.btn.alt{background:#fff;flex:0 0 auto;padding:13px 16px}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 #0d0e33}
+.log{min-height:20px;text-align:center;font-weight:800;color:#ffd23f}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <div class="head"><div><small id="sub">Draw your fighter</small><h1 id="title">Inkborn Arena</h1></div><span class="round" id="round"></span></div>
+  <div class="pad" id="pad"><canvas id="cv" aria-label="Drawing and battle area"></canvas><div class="hint" id="hint">Draw a creature with your finger.<br>Long lines = more health. Spiky = harder hits. Small = faster.</div></div>
+  <div class="stats" id="stats">
+    <div class="st"><span>HEALTH <em id="sHP">0</em></span><i><b id="bHP" style="background:#5ee08f;width:0"></b></i></div>
+    <div class="st"><span>ATTACK <em id="sAT">0</em></span><i><b id="bAT" style="background:#ff5d8f;width:0"></b></i></div>
+    <div class="st"><span>SPEED <em id="sSP">0</em></span><i><b id="bSP" style="background:#5ec8ff;width:0"></b></i></div>
+  </div>
+  <div class="log" id="log" aria-live="polite"></div>
+  <div class="row" id="drawCtl"><div class="inks" id="inks"></div><button class="btn alt" id="clear">Clear</button><button class="btn" id="fight" disabled>Fight!</button></div>
+  <div class="row" id="battleCtl" hidden><button class="btn" id="next">Next fight</button></div>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'A-01',line:'Action & Battle line',color:'#13a05c'});
+const $=id=>document.getElementById(id); const cv=$('cv');
+let level,strokes=[],cur=null,phase='menu',me=null,foe=null,round=0,wins=0,anim=null,fx=[];
+const INKS=['#14163a','#e2453a','#2f5bff','#13a05c']; let ink=INKS[0];
+let S=null; S=G9.canvas(cv,()=>{ if(S) draw(); });
+const LV={Easy:{rounds:3,mul:0.8},Normal:{rounds:5,mul:1},Hard:{rounds:7,mul:1.18}};
+
+$('inks').innerHTML=INKS.map((c,i)=>`<button style="background:${c}" aria-label="Ink colour ${i+1}" aria-pressed="${i===0}" data-c="${c}"></button>`).join('');
+$('inks').onclick=e=>{ const b=e.target.closest('[data-c]'); if(!b) return; ink=b.dataset.c; [...$('inks').children].forEach(x=>x.setAttribute('aria-pressed',x===b)); draw(); };
+function analyse(st){ let len=0,spikes=0,minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+  st.forEach(s=>{ for(let i=0;i<s.length;i++){ const p=s[i]; minx=Math.min(minx,p.x);maxx=Math.max(maxx,p.x);miny=Math.min(miny,p.y);maxy=Math.max(maxy,p.y);
+    if(i){ len+=Math.hypot(p.x-s[i-1].x,p.y-s[i-1].y); }
+    if(i>=2){ const a=Math.atan2(s[i-1].y-s[i-2].y,s[i-1].x-s[i-2].x), b=Math.atan2(p.y-s[i-1].y,p.x-s[i-1].x); let d=Math.abs(a-b); if(d>Math.PI) d=2*Math.PI-d; if(d>1.05) spikes++; } } });
+  const area=st.length?Math.max(1,(maxx-minx)*(maxy-miny)):1, rel=Math.min(1,area/(S.w*S.h));
+  const hp=Math.round(G9.clamp(30+len/9,30,240)), at=Math.round(G9.clamp(6+spikes*1.3,6,40)), sp=Math.round(G9.clamp(8+(1-rel)*28,8,36));
+  let H=hp,A=at,P=sp; const pw=H/240+A/40+P/36, cap=1.65; if(pw>cap){ const f=cap/pw; H=Math.round(Math.max(30,H*f)); A=Math.round(Math.max(6,A*f)); P=Math.round(Math.max(8,P*f)); }
+  return {hp:H,at:A,sp:P,len,box:{minx,miny,maxx,maxy}}; }
+function showStats(s){ $('sHP').textContent=s.hp; $('sAT').textContent=s.at; $('sSP').textContent=s.sp;
+  $('bHP').style.width=(s.hp/240*100)+'%'; $('bAT').style.width=(s.at/40*100)+'%'; $('bSP').style.width=(s.sp/36*100)+'%'; }
+/* drawing */
+cv.addEventListener('pointerdown',e=>{ if(phase!=='draw') return; e.preventDefault(); cv.setPointerCapture(e.pointerId); const r=cv.getBoundingClientRect(); cur=[{x:e.clientX-r.left,y:e.clientY-r.top}]; strokes.push(cur); $('hint').hidden=true; });
+cv.addEventListener('pointermove',e=>{ if(!cur) return; const r=cv.getBoundingClientRect(), p={x:e.clientX-r.left,y:e.clientY-r.top}, q=cur[cur.length-1]; if(Math.hypot(p.x-q.x,p.y-q.y)<3) return; cur.push(p); draw(); upd(); });
+['pointerup','pointercancel','pointerleave'].forEach(t=>cv.addEventListener(t,()=>{ if(cur){ cur=null; upd(); } }));
+function upd(){ const s=analyse(strokes); showStats(s); $('fight').disabled=s.len<160; $('log').textContent=s.len<160&&strokes.length?'Keep drawing…':''; }
+$('clear').onclick=()=>{ strokes=[]; $('hint').hidden=false; upd(); draw(); };
+/* creatures */
+function enemy(n){ const m=LV[level].mul*(1+n*0.17); const pts=[], k=7+Math.floor(Math.random()*6), spiky=Math.random();
+  for(let i=0;i<=k*2;i++){ const a=i/(k*2)*Math.PI*2, rr=(i%2&&spiky>0.4?0.95:0.6)+Math.random()*0.15; pts.push({x:Math.cos(a)*rr,y:Math.sin(a)*rr}); }
+  const names=['Smudge','Blotto','Scribblor','Inkwyrm','Glyphon','Dribble','Quillbeast','Splotch','Nibmaw'];
+  return {name:G9.pick(names)+(n>2?' Prime':''),shape:pts,eyes:Math.random()<0.5?1:2,color:G9.pick(['#e2453a','#2f5bff','#13a05c','#8a3ffc','#f08a1c']),
+    hp:Math.round((55+n*16)*m),at:Math.round((8+n*2.6)*m),sp:Math.round(G9.clamp((12+n*2)*m,8,34))}; }
+function drawStrokes(g,st,box,cx,cy,size,col,flip){ const w=box.maxx-box.minx||1,h=box.maxy-box.miny||1, sc=size/Math.max(w,h);
+  g.save(); g.translate(cx,cy); if(flip) g.scale(-1,1); g.strokeStyle=col; g.lineWidth=Math.max(3,5*sc); g.lineCap='round'; g.lineJoin='round';
+  st.forEach(s=>{ g.beginPath(); s.forEach((p,i)=>{ const x=(p.x-box.minx-w/2)*sc, y=(p.y-box.miny-h/2)*sc; i?g.lineTo(x,y):g.moveTo(x,y); }); g.stroke(); }); g.restore(); }
+function drawFoe(g,f,cx,cy,size){ g.save(); g.translate(cx,cy); g.fillStyle=f.color; g.strokeStyle='#14163a'; g.lineWidth=4; g.beginPath();
+  f.shape.forEach((p,i)=>{ const x=p.x*size/2,y=p.y*size/2; i?g.lineTo(x,y):g.moveTo(x,y); }); g.closePath(); g.fill(); g.stroke();
+  for(let e=0;e<f.eyes;e++){ const ex=(f.eyes===1?0:(e?1:-1)*size*0.13); g.fillStyle='#fff'; g.beginPath(); g.arc(ex,-size*0.08,size*0.09,0,7); g.fill(); g.stroke(); g.fillStyle='#14163a'; g.beginPath(); g.arc(ex-size*0.02,-size*0.08,size*0.04,0,7); g.fill(); }
+  g.restore(); }
+function bar(g,x,y,w,v,max,col,label){ g.fillStyle='rgba(20,22,58,.15)'; g.fillRect(x,y,w,10); g.fillStyle=col; g.fillRect(x,y,w*Math.max(0,v)/max,10); g.strokeStyle='#14163a'; g.lineWidth=2; g.strokeRect(x,y,w,10);
+  g.fillStyle='#14163a'; g.font="800 13px 'Figtree',sans-serif"; g.textAlign='left'; g.fillText(label,x,y-6); }
+function draw(){ const g=S.ctx; g.clearRect(0,0,S.w,S.h);
+  if(phase==='draw'||phase==='menu'){ g.strokeStyle=ink; g.lineWidth=5; g.lineCap='round'; g.lineJoin='round';
+    strokes.forEach(s=>{ g.beginPath(); s.forEach((p,i)=>i?g.lineTo(p.x,p.y):g.moveTo(p.x,p.y)); g.stroke(); }); return; }
+  // arena
+  g.fillStyle='#f4efe0'; g.fillRect(0,S.h*0.72,S.w,S.h*0.28); g.strokeStyle='#d8cfb4'; g.lineWidth=2; g.beginPath(); g.moveTo(0,S.h*0.72); g.lineTo(S.w,S.h*0.72); g.stroke();
+  const size=Math.min(S.w*0.36,S.h*0.4), t=performance.now()/1000;
+  const mx=S.w*0.27+(me.lunge||0)*S.w*0.18, fx_=S.w*0.73-(foe.lunge||0)*S.w*0.18, y=S.h*0.5;
+  g.globalAlpha=me.hp>0?1:0.3; drawStrokes(g,strokes,me.box,mx,y+Math.sin(t*3)*4-(me.hit||0)*6,size,me.hit>0?'#e2453a':ink,false);
+  g.globalAlpha=foe.hp>0?1:0.3; drawFoe(g,foe,fx_,y+Math.sin(t*3+1)*4-(foe.hit||0)*6,size*(foe.hit>0?0.94:1)); g.globalAlpha=1;
+  const bw=S.w*0.38; bar(g,14,30,bw,me.hp,me.max,'#5ee08f','You'); bar(g,S.w-14-bw,30,bw,foe.hp,foe.max,'#ff5d8f',foe.name);
+  g.textAlign='center'; fx.forEach(f=>{ g.globalAlpha=Math.max(0,1-f.t); g.fillStyle=f.c; g.font=`800 ${f.big?30:24}px 'Bricolage Grotesque',sans-serif`; g.fillText(f.txt,f.x,f.y-f.t*40); }); g.globalAlpha=1; }
+/* battle */
+function startFight(){ round++; foe=enemy(round); foe.max=foe.hp; foe.charge=0; me.charge=0; phase='battle'; $('drawCtl').hidden=true; $('battleCtl').hidden=true; $('stats').hidden=true;
+  $('round').textContent=`Fight ${round}/${LV[level].rounds}`; $('sub').textContent='Battle'; $('title').textContent=`vs ${foe.name}`; $('log').textContent=`${foe.name}: HP ${foe.hp} · ATK ${foe.at} · SPD ${foe.sp}`;
+  let last=performance.now(); cancelAnimationFrame(anim);
+  const step=now=>{ const dt=Math.min(0.05,(now-last)/1000); last=now;
+    [me,foe].forEach(c=>{ c.lunge=Math.max(0,(c.lunge||0)-dt*3); c.hit=Math.max(0,(c.hit||0)-dt*3); });
+    fx.forEach(f=>f.t+=dt*1.2); fx=fx.filter(f=>f.t<1);
+    if(me.hp>0&&foe.hp>0){ me.charge+=me.sp*dt*3; foe.charge+=foe.sp*dt*3;
+      if(me.charge>=100){ me.charge=0; hit(me,foe,S.w*0.73); } else if(foe.charge>=100){ foe.charge=0; hit(foe,me,S.w*0.27); } }
+    draw(); if(me.hp>0&&foe.hp>0||fx.length) anim=requestAnimationFrame(step); else done(); };
+  anim=requestAnimationFrame(step); }
+function hit(a,d,x){ a.lunge=1; const crit=Math.random()<0.12, dmg=Math.max(1,Math.round(a.at*G9.rand(0.8,1.2)*(crit?1.8:1))); d.hp-=dmg; d.hit=1; G9.vibrate(crit?30:8);
+  fx.push({txt:(crit?'CRIT ':'')+'-'+dmg,x,y:S.h*0.32,t:0,c:crit?'#ffb81c':'#e2453a',big:crit}); }
+function done(){ const won=me.hp>0; const total=LV[level].rounds;
+  if(won){ wins++; me.hp=Math.min(me.max,me.hp+Math.round(me.max*0.5)); }
+  if(!won||round>=total){ const b=G9.load('ink-best',{}); const nb=wins>(b[level]||0); if(nb){ b[level]=wins; G9.save('ink-best',b); }
+    setTimeout(()=>G9.over({tag:won?'Champion':'Knocked out',title:won?'Arena champion!':`${foe.name} wins`,sub:`${level} · ${wins} of ${total} fights won`,stats:[['Fights won',wins],['Best',Math.max(wins,b[level]||0)]],
+      note:won?'Your drawing beat every rival. Try a harder level.':'Tip: longer lines give more health, sharp zig-zags hit harder.',retry:'Draw a new fighter',onRetry:()=>begin(level),onMenu:menu}),600); return; }
+  $('log').textContent=`You won! Healed 50%. Next: fight ${round+1}`; $('battleCtl').hidden=false; }
+$('next').onclick=()=>startFight();
+$('fight').onclick=()=>{ const s=analyse(strokes); me={...s,max:s.hp}; round=0; wins=0; startFight(); };
+function begin(lv){ level=lv; phase='draw'; strokes=[]; cancelAnimationFrame(anim); $('hint').hidden=false; $('drawCtl').hidden=false; $('battleCtl').hidden=true; $('stats').hidden=false;
+  $('sub').textContent='Draw your fighter'; $('title').textContent='Inkborn Arena'; $('round').textContent=`${LV[lv].rounds} fights`; $('log').textContent=''; upd(); draw(); }
+function menu(){ G9.menu({id:'ink',title:'Inkborn Arena',code:'A-01',hook:'Draw a monster with your finger. Watch it fight.',
+  how:'Draw any creature. <b>More ink = more health. Sharp zig-zags = harder hits. A small drawing = more speed.</b> Every fighter has the same total power, so choose your strengths. Your fighter then battles rival creatures one after another, healing 50% between fights.',
+  levels:['Easy','Normal','Hard'],best:lv=>{ const b=G9.load('ink-best',{})[lv]; return b?`Best on ${lv}: ${b} fights won`:''; },onStart:lv=>begin(lv)}); }
+showStats({hp:0,at:0,sp:0}); menu();
+</script>
+</body>
+</html>

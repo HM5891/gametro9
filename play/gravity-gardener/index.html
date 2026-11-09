@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gravity Gardener · Gametro9</title>
+<meta name="theme-color" content="#1e1452">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#c3b6ff;--ink:#14163a}
+html,body{height:100%;margin:0}
+body{background:#1e1452;color:#f2eeff;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 max(16px,env(safe-area-inset-right,0px)) 4px max(16px,env(safe-area-inset-left,0px))}
+.hud small{display:block;font:700 11px 'Overpass Mono',monospace;letter-spacing:.1em;color:#c3b6ff;text-transform:uppercase}
+.hud b{font:800 24px/1 'Bricolage Grotesque','Arial Black',sans-serif;font-variant-numeric:tabular-nums}
+.dew{display:flex;align-items:center;gap:6px}
+.dew i{width:16px;height:20px;background:#7fe3ff;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;border:2px solid #0b0a2a;transform:rotate(180deg)}
+#cv{flex:1;width:100%;display:block;touch-action:none;min-height:0}
+.bar{display:flex;gap:8px;overflow-x:auto;padding:8px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.seed{flex:none;display:flex;align-items:center;gap:8px;border:2.5px solid #0b0a2a;box-shadow:2px 2px 0 #0b0a2a;background:#2e2170;color:#f2eeff;border-radius:14px;padding:8px 12px;font:800 14px 'Figtree',sans-serif;cursor:pointer}
+.seed i{width:14px;height:14px;border-radius:50%;border:2px solid #0b0a2a}
+.seed small{display:block;font-weight:700;font-size:11.5px;color:#c3b6ff}
+.seed[aria-pressed="true"]{background:#f2eeff;color:var(--ink)}
+.seed[aria-pressed="true"] small{color:#565a7e}
+.seed.planet{background:#ffd23f;color:var(--ink)}
+.seed.planet small{color:#5a4600}
+.seed:disabled{opacity:.45}
+</style>
+</head>
+<body>
+<div class="hud"><div><small id="pg">Planet</small><b id="pname">Mossy</b></div><div class="dew"><i></i><b id="dew">0</b></div></div>
+<canvas id="cv" aria-label="Your planet. Tap around it to plant a seed, tap a glowing bloom to collect dew."></canvas>
+<div class="bar" id="bar"></div>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'T-02',line:'Tycoon & Builder line',color:'#f0412b'});
+const $=id=>document.getElementById(id), cv=$('cv');
+const SEEDS=[{id:'sprout',n:'Sprout',cost:5,grow:8,yield:2,c:'#7be36b',len:.6},{id:'fern',n:'Fern',cost:30,grow:18,yield:9,c:'#3fd1a0',len:.85},{id:'sun',n:'Sunbloom',cost:120,grow:35,yield:40,c:'#ffd23f',len:1.05},{id:'star',n:'Starvine',cost:500,grow:60,yield:180,c:'#ff7ad9',len:1.3}];
+const PLANETS=[{n:'Mossy',col:'#6fcf5a',rim:'#3d8b3a',sky:['#1e1452','#3a1d6e'],twist:0,wave:0,cost:0,mult:1},
+  {n:'Spiral',col:'#5ab7d3',rim:'#2d6f88',sky:['#0f2448','#173a6b'],twist:1.4,wave:0,cost:250,mult:1.5},
+  {n:'Wobble',col:'#e7a25a',rim:'#a35e22',sky:['#3a1630','#5e2140'],twist:0,wave:1,cost:900,mult:2.2},
+  {n:'Twin Moon',col:'#c8b6ff',rim:'#6f5ac0',sky:['#0b0a2a','#241a5c'],twist:-1,wave:.6,cost:3000,mult:3.5}];
+const SLOTS=12;
+let S=null, G, sel='sprout', level='Easy', raf;
+S=G9.canvas(cv,()=>{ if(S&&G) draw(); });
+const speed=()=>level==='Easy'?1.6:1, ymul=()=>level==='Easy'?1:1.4;
+function fresh(){ return {dew:20,planet:0,owned:[0],gardens:{0:Array(SLOTS).fill(null)},stars:Array.from({length:60},()=>[Math.random(),Math.random(),Math.random()])}; }
+function load(){ G=G9.load('garden-'+level,null)||fresh(); const now=Date.now(); G.stars=G.stars||fresh().stars; if(G.saved){ const away=(now-G.saved)/1000; if(away>60) G9.toast(`Welcome back! Your plants grew while you were away.`); } }
+function save(){ G.saved=Date.now(); G9.save('garden-'+level,G); }
+const P=()=>PLANETS[G.planet], garden=()=>G.gardens[G.planet]||(G.gardens[G.planet]=Array(SLOTS).fill(null));
+function progress(p){ const s=SEEDS.find(x=>x.id===p.seed); return Math.min(1,(Date.now()-p.born)/1000*speed()/s.grow); }
+function ready(p){ const s=SEEDS.find(x=>x.id===p.seed); return progress(p)>=1&&(Date.now()-p.last)/1000*speed()>=s.grow*0.5; }
+function geo(){ const cx=S.w/2, cy=S.h*0.55, R=Math.min(S.w,S.h)*0.17; return {cx,cy,R}; }
+function stemPts(i,p){ const {cx,cy,R}=geo(), s=SEEDS.find(x=>x.id===p.seed), pl=P(), base=i/SLOTS*Math.PI*2-Math.PI/2, L=R*1.25*s.len*(0.25+0.75*progress(p)), pts=[];
+  for(let k=0;k<=20;k++){ const t=k/20, a=base+pl.twist*t*0.9*Math.min(1,L/R)+Math.sin(t*6+i)*pl.wave*0.12*t, r=R+L*t; pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]); } return pts; }
+function draw(){ const g=S.ctx, pl=P(), {cx,cy,R}=geo(), t=performance.now()/1000;
+  const sky=g.createLinearGradient(0,0,0,S.h); sky.addColorStop(0,pl.sky[0]); sky.addColorStop(1,pl.sky[1]); g.fillStyle=sky; g.fillRect(0,0,S.w,S.h);
+  G.stars.forEach(([x,y,z])=>{ g.fillStyle=`rgba(255,255,255,${0.3+0.5*Math.abs(Math.sin(t*z*2+x*9))})`; g.fillRect(x*S.w,y*S.h,1.5+z,1.5+z); });
+  if(pl.n==='Twin Moon'){ g.fillStyle='#e9e2ff'; g.beginPath(); g.arc(S.w*0.82,S.h*0.15,18,0,7); g.fill(); g.beginPath(); g.arc(S.w*0.18,S.h*0.2,10,0,7); g.fill(); }
+  g.fillStyle='rgba(255,255,255,.06)'; g.beginPath(); g.arc(cx,cy,R*2.6,0,7); g.fill();
+  garden().forEach((p,i)=>{ if(!p) return; const s=SEEDS.find(x=>x.id===p.seed), pts=stemPts(i,p), pr=progress(p);
+    g.strokeStyle='#2f6b2e'; g.lineWidth=Math.max(3,R*0.06); g.lineCap='round'; g.lineJoin='round'; g.beginPath(); pts.forEach(([x,y],k)=>k?g.lineTo(x,y):g.moveTo(x,y)); g.stroke();
+    for(let k=4;k<pts.length-2;k+=4){ const [x,y]=pts[k], [x2,y2]=pts[k+1], a=Math.atan2(y2-y,x2-x)+(k%8?1:-1)*1.1; g.fillStyle=s.c; g.beginPath(); g.ellipse(x+Math.cos(a)*R*0.08,y+Math.sin(a)*R*0.08,R*0.09*pr,R*0.04*pr,a,0,7); g.fill(); }
+    const [hx,hy]=pts[pts.length-1]; if(pr>=1){ const rd=ready(p), r=R*(rd?0.16+Math.sin(t*4+i)*0.015:0.1);
+      if(rd){ g.fillStyle='rgba(255,255,255,.25)'; g.beginPath(); g.arc(hx,hy,r*1.8,0,7); g.fill(); }
+      for(let k=0;k<6;k++){ const a=k/6*Math.PI*2+t*0.3; g.fillStyle=s.c; g.beginPath(); g.arc(hx+Math.cos(a)*r*0.7,hy+Math.sin(a)*r*0.7,r*0.55,0,7); g.fill(); }
+      g.fillStyle=rd?'#7fe3ff':'#fff6c4'; g.beginPath(); g.arc(hx,hy,r*0.45,0,7); g.fill(); } });
+  g.fillStyle=pl.rim; g.beginPath(); g.arc(cx,cy,R*1.04,0,7); g.fill(); g.fillStyle=pl.col; g.beginPath(); g.arc(cx,cy,R,0,7); g.fill();
+  g.fillStyle='rgba(0,0,0,.1)'; [[.3,-.2,.18],[-.35,.25,.12],[.1,.45,.1]].forEach(([x,y,r])=>{ g.beginPath(); g.arc(cx+x*R,cy+y*R,r*R,0,7); g.fill(); });
+  garden().forEach((p,i)=>{ if(p) return; const a=i/SLOTS*Math.PI*2-Math.PI/2; g.fillStyle='rgba(255,255,255,.35)'; g.beginPath(); g.arc(cx+Math.cos(a)*R*1.12,cy+Math.sin(a)*R*1.12,3,0,7); g.fill(); }); }
+function loop(){ draw(); raf=requestAnimationFrame(loop); }
+function hud(){ $('dew').textContent=Math.floor(G.dew); $('pname').textContent=P().n; $('pg').textContent=`Planet ${G.planet+1} · ×${P().mult} dew`;
+  const nextP=PLANETS.findIndex((p,i)=>!G.owned.includes(i));
+  $('bar').innerHTML=SEEDS.map(s=>`<button class="seed" data-s="${s.id}" aria-pressed="${sel===s.id}" ${G.dew<s.cost?'disabled':''}><i style="background:${s.c}"></i><span>${s.n}<small>${s.cost} dew · +${Math.round(s.yield*P().mult*ymul())}</small></span></button>`).join('')
+    +G.owned.map(i=>i===G.planet?'':`<button class="seed" data-go="${i}"><span>Fly to ${PLANETS[i].n}<small>Owned</small></span></button>`).join('')
+    +(nextP>=0?`<button class="seed planet" data-buy="${nextP}" ${G.dew<PLANETS[nextP].cost?'disabled':''}><span>Unlock ${PLANETS[nextP].n}<small>${PLANETS[nextP].cost} dew · ×${PLANETS[nextP].mult}</small></span></button>`:''); }
+$('bar').addEventListener('click',e=>{ const s=e.target.closest('[data-s]'), go=e.target.closest('[data-go]'), b=e.target.closest('[data-buy]');
+  if(s){ sel=s.dataset.s; hud(); } else if(go){ G.planet=+go.dataset.go; save(); hud(); G9.toast(`Welcome to ${P().n}`); }
+  else if(b){ const i=+b.dataset.buy; if(G.dew<PLANETS[i].cost) return; G.dew-=PLANETS[i].cost; G.owned.push(i); G.planet=i; save(); hud(); G9.toast(`${PLANETS[i].n} unlocked! Its gravity bends plants differently.`); } });
+cv.addEventListener('pointerdown',e=>{ const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, {cx,cy,R}=geo();
+  // harvest: tap near a bloom head
+  let hit=-1, bd=1e9; garden().forEach((p,i)=>{ if(!p) return; const pts=stemPts(i,p), [hx,hy]=pts[pts.length-1], d=Math.hypot(hx-x,hy-y); if(d<R*0.45&&d<bd){ bd=d; hit=i; } });
+  if(hit>=0){ const p=garden()[hit], s=SEEDS.find(q=>q.id===p.seed); if(ready(p)){ const v=Math.round(s.yield*P().mult*ymul()); G.dew+=v; p.last=Date.now(); save(); hud(); G9.vibrate(10); G9.toast(`+${v} dew`); return; }
+    const left=progress(p)<1?Math.ceil(s.grow*(1-progress(p))/speed()):Math.ceil(s.grow*0.5/speed()-(Date.now()-p.last)/1000); G9.toast(progress(p)<1?`Still growing… ${left}s`:`Next bloom in ${Math.max(1,left)}s`); return; }
+  const a=Math.atan2(y-cy,x-cx)+Math.PI/2, i=((Math.round(a/(Math.PI*2)*SLOTS)%SLOTS)+SLOTS)%SLOTS, gd=garden();
+  if(Math.hypot(x-cx,y-cy)>R*2.8) return;
+  if(gd[i]){ G9.toast('Tap the flower at the tip to collect dew. Long-press to clear.'); return; }
+  const s=SEEDS.find(q=>q.id===sel); if(G.dew<s.cost){ G9.toast(`You need ${s.cost} dew for ${s.n}`); return; }
+  G.dew-=s.cost; gd[i]={seed:sel,born:Date.now(),last:Date.now()}; save(); hud(); G9.vibrate(8); });
+let lp; cv.addEventListener('pointerdown',e=>{ clearTimeout(lp); lp=setTimeout(()=>{ const r=cv.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top, {cx,cy}=geo();
+  const a=Math.atan2(y-cy,x-cx)+Math.PI/2, i=((Math.round(a/(Math.PI*2)*SLOTS)%SLOTS)+SLOTS)%SLOTS; if(garden()[i]){ garden()[i]=null; save(); hud(); G9.toast('Plant cleared'); } },700); });
+['pointerup','pointercancel','pointermove'].forEach(t=>cv.addEventListener(t,()=>clearTimeout(lp)));
+setInterval(()=>{ if(G) hud(); },3000);
+function start(lv){ level=lv; load(); sel='sprout'; hud(); cancelAnimationFrame(raf); loop(); }
+function menu(){ G9.menu({id:'garden',title:'Gravity Gardener',code:'T-02',hook:'Grow impossible gardens on tiny planets.',
+  how:'<b>Tap around the planet</b> to plant the selected seed. When a flower glows, <b>tap it to collect dew</b>. Spend dew on rarer seeds and new planets, where gravity bends plants in new ways. Your garden keeps growing while you are away.',
+  levels:['Easy','Normal'],cta:'Open my garden',best:lv=>{ const g=G9.load('garden-'+lv,null); return g?`${lv} garden: ${Math.floor(g.dew)} dew · ${g.owned.length} planet${g.owned.length>1?'s':''}`:''; },onStart:lv=>start(lv)}); }
+G={dew:0,planet:0,owned:[0],gardens:{0:Array(SLOTS).fill(null)},stars:fresh().stars}; draw(); menu();
+</script>
+</body>
+</html>

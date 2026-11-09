@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Kingdoms · Gametro9</title>
+<meta name="theme-color" content="#2a4a3a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--g9-dim:#5a6b4a;--ink:#14163a}
+html,body{min-height:100%;margin:0}
+body{background:#e9e4cf;color:var(--ink);font-family:'Figtree',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+main{max-width:520px;margin:0 auto;padding:0 max(14px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.top small{display:block;font:700 11px 'Overpass Mono',monospace;letter-spacing:.1em;color:#5a6b4a;text-transform:uppercase}
+.top b{font:800 24px/1 'Bricolage Grotesque','Arial Black',sans-serif;font-variant-numeric:tabular-nums}
+.map{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:8px;background:#7fb069;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);border-radius:18px;aspect-ratio:1}
+.t{position:relative;border:0;border-radius:8px;padding:0;cursor:pointer;font:800 15px 'Figtree',sans-serif;color:#fff;display:grid;place-items:center;background:#a7c98a;transition:transform .1s}
+.t.hill{background:#b9a77a}.t.lake{background:#5aa9d6;cursor:default}
+.t.o{box-shadow:inset 0 0 0 3px rgba(20,22,58,.5)}
+.t.cap::after{content:"♛";position:absolute;top:1px;left:3px;font-size:11px;color:#fff}
+.t.sel{outline:3px solid #fff;outline-offset:-1px;transform:scale(1.06);z-index:2}
+.t.tgt{animation:pulse .9s infinite}
+@keyframes pulse{50%{filter:brightness(1.25)}}
+.t span{text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.t.hill:not(.o)::before{content:"▲";position:absolute;bottom:2px;right:4px;font-size:9px;color:#6d5a2c}
+.info{background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:10px 12px;font-size:14.5px;font-weight:600;min-height:42px}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);border-radius:14px;padding:12px;font:800 15.5px 'Figtree',sans-serif;cursor:pointer;background:#fff;color:var(--ink)}
+.btn.go{background:#f0412b;color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.ks{display:grid;grid-template-columns:1fr;gap:8px}
+.k{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:7px 9px;font-size:13px;font-weight:700}
+.k i{width:14px;height:14px;border-radius:4px;border:2px solid var(--ink);flex:none}
+.k .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.k .nm small{display:block;color:#565a7e;font-weight:600}
+.k button{border:2px solid var(--ink);border-radius:8px;background:#ffd23f;font:800 12px 'Figtree',sans-serif;padding:4px 7px;cursor:pointer}
+.k button:disabled{opacity:.4}
+.k.dead{opacity:.45}
+.log{font-size:13px;color:#4a5340;font-weight:600;min-height:18px}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><small>Day</small><b id="day">1</b></div><div style="text-align:center"><small>Gold</small><b id="gold">0</b></div><div style="text-align:right"><small>Land</small><b id="land">1</b></div></div>
+  <div class="map" id="map" role="grid" aria-label="Kingdom map"></div>
+  <div class="info" id="info" aria-live="polite"></div>
+  <div class="acts"><button class="btn" id="recruit">Recruit +1 (2 gold)</button><button class="btn go" id="end">End day →</button></div>
+  <div class="ks" id="ks"></div>
+  <div class="log" id="log"></div>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'S-01',line:'Strategy line',color:'#e89a00'});
+const $=id=>document.getElementById(id), N=7;
+const K=[{n:'Your kingdom',c:'#f0412b'},{n:'Bluemarsh',c:'#2f5bff'},{n:'Greenhollow',c:'#13a05c'},{n:'Sunreach',c:'#e89a00'}];
+let T,gold,day,sel,truce,alive,over,aiGold;
+const id=(x,y)=>y*N+x, xy=i=>[i%N,Math.floor(i/N)];
+const nb=i=>{ const [x,y]=xy(i); return [[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dy])=>[x+dx,y+dy]).filter(([a,b])=>a>=0&&b>=0&&a<N&&b<N).map(([a,b])=>id(a,b)).filter(j=>T[j].type!=='lake'); };
+function newMap(){ T=Array.from({length:N*N},()=>({type:Math.random()<0.18?'hill':'plain',o:-1,tr:0,cap:false}));
+  [[3,1],[1,3],[5,4],[2,5],[4,2]].forEach(([x,y])=>{ if(Math.random()<0.7) T[id(x,y)].type='lake'; });
+  const caps=[id(0,N-1),id(N-1,0),id(0,0),id(N-1,N-1)];
+  caps.forEach((c,k)=>{ T[c]={type:'plain',o:k,tr:k?3:4,cap:true}; nb(c).forEach(j=>{ if(T[j].type==='lake') T[j].type='plain'; }); }); }
+const owned=k=>T.filter(t=>t.o===k).length;
+const income=k=>owned(k)+(T.some(t=>t.o===k&&t.cap)?2:0);
+function render(){ const tg=sel!=null?nb(sel):[];
+  $('map').innerHTML=T.map((t,i)=>`<button class="t ${t.type}${t.o>=0?' o':''}${t.cap?' cap':''}${i===sel?' sel':''}${tg.includes(i)&&t.o!==0?' tgt':''}" data-i="${i}" ${t.type==='lake'?'disabled':''} style="${t.o>=0?`background:${K[t.o].c}`:''}" aria-label="${t.type}${t.o>=0?', '+K[t.o].n+', '+t.tr+' troops':''}">${t.o>=0?`<span>${t.tr}</span>`:''}</button>`).join('');
+  $('day').textContent=day; $('gold').textContent=gold; $('land').textContent=owned(0);
+  $('recruit').disabled=over||sel==null||T[sel].o!==0||gold<2;
+  $('ks').innerHTML=K.slice(1).map((k,j)=>{ const n=j+1, a=alive[n]; return `<div class="k${a?'':' dead'}"><i style="background:${k.c}"></i><span class="nm">${k.n}<small>${a?`${owned(n)} land · ${truce[n]>0?`truce ${truce[n]}d`:'hostile'}`:'fallen'}</small></span>${a?`<button data-truce="${n}" ${truce[n]>0||gold<6||over?'disabled':''}>Truce 6g</button>`:''}</div>`; }).join(''); }
+function info(t){ $('info').innerHTML=t; }
+function log(t){ $('log').textContent=t; }
+function battle(from,to){ const a=T[from], d=T[to]; let att=a.tr-1, def=d.tr+(d.type==='hill'?1:0)+(d.cap?1:0);
+  if(att<1) return false; a.tr=1;
+  while(att>0&&def>0){ if(Math.random()*6+att*0.05>Math.random()*6+def*0.05) def--; else att--; }
+  if(att>0){ const was=d.o; d.o=a.o; d.tr=att; if(d.cap&&was>=0){ d.cap=false; T.filter(t=>t.o===was).forEach(t=>{ t.o=a.o; }); alive[was]=false; return 'conquer'; } return true; }
+  d.tr=Math.max(1,Math.min(d.tr,def-(d.type==='hill'?1:0)-(d.cap?1:0))); return false; }
+$('map').addEventListener('click',e=>{ const b=e.target.closest('.t'); if(!b||over) return; const i=+b.dataset.i, t=T[i];
+  if(sel!=null&&nb(sel).includes(i)&&t.o!==0){ const f=T[sel];
+    if(f.tr<2){ info('You need at least 2 troops on a tile to move out.'); return; }
+    if(t.o<0){ const mv=Math.ceil(f.tr/2); f.tr-=mv; t.o=0; t.tr=mv; info(`Claimed new land with ${mv} troops.`); sel=i; }
+    else { if(truce[t.o]>0){ info(`You have a truce with ${K[t.o].n}.`); return; } const nm=K[t.o].n, r=battle(sel,i);
+      info(r==='conquer'?`You took ${nm}'s capital! Their kingdom is yours.`:r?`Victory! You took land from ${nm}.`:`${nm} held the line.`); sel=r?i:sel; G9.vibrate(r?20:[30,30]); }
+    render(); check(); return; }
+  if(t.o===0){ sel=i===sel?null:i; info(sel==null?'':`Selected: ${t.tr} troops${t.cap?' (capital)':''}. Tap a glowing tile next to it to claim land or raid.`); }
+  else if(t.o>0) info(`${K[t.o].n}: ${t.tr} troops${t.type==='hill'?' on a hill (+1 defence)':''}${t.cap?', their capital (+1 defence)':''}.`);
+  else info(t.type==='hill'?'Empty hill: +1 defence once you hold it.':'Empty plains.');
+  render(); });
+$('recruit').onclick=()=>{ if(sel==null||T[sel].o!==0||gold<2) return; gold-=2; T[sel].tr++; render(); };
+$('ks').addEventListener('click',e=>{ const b=e.target.closest('[data-truce]'); if(!b) return; const n=+b.dataset.truce; if(gold<6) return; gold-=6; truce[n]=3; aiGold[n]+=3; log(`${K[n].n} accepts gold for a 3-day truce.`); render(); });
+function ai(k){ if(!alive[k]) return; aiGold[k]+=income(k); const mine=T.map((t,i)=>t.o===k?i:-1).filter(i=>i>=0);
+  for(let g=0;g<3&&aiGold[k]>=2;g++){ const border=mine.filter(i=>nb(i).some(j=>T[j].o!==k)); const pick=G9.pick(border.length?border:mine); if(pick==null) break; T[pick].tr++; aiGold[k]-=2; }
+  mine.sort(()=>Math.random()-.5).forEach(i=>{ const f=T[i]; if(f.o!==k||f.tr<3) return;
+    const opts=nb(i).filter(j=>T[j].o!==k&&!(T[j].o===0&&truce[k]>0));
+    const empty=opts.filter(j=>T[j].o<0), weak=opts.filter(j=>T[j].o>=0&&T[j].tr+1<f.tr-1);
+    if(empty.length&&Math.random()<0.8){ const j=G9.pick(empty), mv=Math.ceil(f.tr/2); f.tr-=mv; T[j].o=k; T[j].tr=mv; }
+    else if(weak.length){ const j=weak.sort((a,b)=>T[a].tr-T[b].tr)[0], tgt=T[j].o; const r=battle(i,j); if(tgt===0&&r) log(`${K[k].n} raided your land!`); } }); }
+$('end').onclick=()=>{ if(over) return; sel=null; for(let k=1;k<4;k++){ ai(k); if(truce[k]>0) truce[k]--; } gold+=income(0); day++;
+  info(`Day ${day}. +${income(0)} gold from your land.`); render(); check(); };
+function check(){ const land=T.filter(t=>t.type!=='lake').length, mine=owned(0), rivals=[1,2,3].filter(k=>alive[k]).length;
+  if(!T.some(t=>t.o===0&&t.cap)){ end(false,'Your capital fell'); return; }
+  if(rivals===0||mine>=land*0.6){ end(true,rivals===0?'Every rival kneels':'You rule most of the land'); } }
+function end(win,why){ over=true; render(); const b=G9.load('pocket-best',{}); if(win&&(!b.Normal||day<b.Normal)){ b.Normal=day; G9.save('pocket-best',b); }
+  setTimeout(()=>G9.over({tag:win?'Victory':'Defeat',title:why,sub:`Day ${day} · ${owned(0)} land`,stats:[['Days',day],['Fastest win',b.Normal?b.Normal+'d':'-']],note:win?'Win in fewer days to beat your record.':'Tip: hold hills, and buy a truce with your strongest neighbour.',retry:'New map',onRetry:()=>start(),onMenu:menu}),400); }
+function start(){ newMap(); gold=4; day=1; sel=null; truce=[0,0,0,0]; alive=[true,true,true,true]; aiGold=[0,0,0,0]; over=false; render(); info('Tap your red capital, then tap a glowing tile next to it to claim land.'); log(''); }
+function menu(){ G9.menu({id:'pocket',title:'Pocket Kingdoms',code:'S-01',hook:'Rule one tile. Trade, ally or raid next door.',
+  how:'You start with one red capital. <b>Select your tile, then tap a neighbour</b> to claim empty land or raid a rival. Land earns gold each day. <b>Recruit troops</b>, hold hills for defence, and <b>pay for truces</b>. Rule 60% of the land or take every capital to win.',
+  levels:['Normal'],cta:'Found my kingdom',best:()=>{ const b=G9.load('pocket-best',{}).Normal; return b?`Fastest win: ${b} days`:''; },onStart:()=>start()}); }
+start(); over=true; render(); menu();
+</script>
+</body>
+</html>
