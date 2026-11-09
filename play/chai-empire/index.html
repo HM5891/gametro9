@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chai Empire</title>
+<meta name="description" content="Chai Empire, a cozy chai stall tycoon game from Gametro9.">
+<meta name="theme-color" content="#f0412b">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Mukta:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one phone-height column — wallet bar, a painted roadside stall in truck-art colours, the serving counter, and a bottom nav that raises sheets */
+:root{
+  --ground:#dcefe8; --ground-2:#bfe3d7; --sky-low:#f7e2b0;
+  --ink:#1d2440; --ink-2:#525b76; --panel:#ffffff; --line:#d2e2dc; --wash:#eef6f3;
+  --teal:#11807c; --teal-d:#0b5d5a; --marigold:#f2a516; --rani:#c42a69; --clay:#b4572e;
+  --wood:#6e4126; --wood-2:#8c5635; --good:#1d8a4e; --bad:#c23a2b; --shade:rgba(29,36,64,.45);
+  --f-display:'Baloo 2','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'Mukta',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);font-size:15px;overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+#app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:10px;padding-block:10px 8px}
+.place{flex:1;min-width:0}
+.place h1{margin:0;font-family:var(--f-display);font-size:22px;line-height:1;font-weight:800;color:var(--teal-d)}
+.place .lvl{font-size:12px;color:var(--ink-2);font-weight:500;display:flex;align-items:center;gap:6px;margin-top:3px}
+.bar{height:5px;flex:1;max-width:110px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--teal);border-radius:9px;transition:width .3s}
+.pill{display:flex;align-items:center;gap:5px;background:var(--panel);border:2px solid var(--line);border-radius:99px;padding:3px 10px 3px 5px;font-weight:700;font-variant-numeric:tabular-nums;font-size:14px}
+.coin{width:16px;height:16px;border-radius:50%;background:var(--marigold);box-shadow:inset 0 0 0 3px #f8c95e;flex:none;display:inline-block;vertical-align:-3px}
+.tok{width:13px;height:13px;margin:0 1px;background:var(--rani);transform:rotate(45deg);border-radius:3px;flex:none;display:inline-block;vertical-align:-1px;box-shadow:inset 0 0 0 2px #e0679a}
+.pill.tk{border-color:#efc2d4}
+.pill .plus{margin-left:2px;width:18px;height:18px;border-radius:50%;background:var(--rani);color:#fff;display:grid;place-items:center;font-size:14px;line-height:1}
+.gift{position:relative;border:0;background:var(--teal);color:#fff;border-radius:12px;padding:5px 9px;font-family:var(--f-display);font-weight:700;font-size:13px}
+.gift .dot{position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--rani);border:2px solid var(--ground)}
+
+/* stall scene */
+.scene{position:relative;flex:1 1 auto;min-height:250px;max-height:380px;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,var(--ground-2) 0%,var(--sky-low) 100%);border:3px solid var(--wood)}
+.awning{position:absolute;top:0;left:0;right:0;height:54px;background:repeating-linear-gradient(90deg,var(--rani) 0 28px,var(--marigold) 28px 56px);z-index:2}
+.awning::after{content:"";position:absolute;left:0;right:0;bottom:-11px;height:12px;background:radial-gradient(circle at 14px 0,var(--rani) 11px,transparent 12px) 0 0/56px 12px repeat-x,radial-gradient(circle at 42px 0,var(--marigold) 11px,transparent 12px) 0 0/56px 12px repeat-x}
+.sign{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--panel);color:var(--teal-d);border:3px solid var(--teal);border-radius:10px;padding:0 14px;font-family:var(--f-display);font-weight:800;font-size:18px;white-space:nowrap;z-index:3;line-height:1.5}
+.sign small{font-size:11px;color:var(--rani);font-weight:700;margin-left:6px;letter-spacing:.04em;text-transform:uppercase}
+.scene.board .sign{background:var(--marigold);color:var(--ink);border:3px dashed var(--rani)}
+.lights{position:absolute;top:66px;left:0;right:0;height:10px;z-index:2;display:none;background:radial-gradient(circle,var(--marigold) 3px,transparent 4px) 0 0/22px 10px repeat-x,radial-gradient(circle,var(--rani) 3px,transparent 4px) 11px 0/22px 10px repeat-x;animation:twinkle 1.6s steps(2) infinite}
+.scene.lit .lights{display:block}
+@keyframes twinkle{50%{opacity:.55}}
+.combo{position:absolute;top:78px;right:10px;z-index:4;font-family:var(--f-display);font-weight:800;font-size:14px;color:var(--rani);background:var(--panel);border-radius:99px;padding:0 10px;opacity:0;transition:opacity .2s}
+.combo.on{opacity:1}
+.boost{position:absolute;top:78px;left:10px;z-index:4;font-size:12px;font-weight:700;color:#fff;background:var(--teal);border-radius:99px;padding:1px 9px}
+.queue{position:absolute;left:0;right:0;top:84px;bottom:62px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;z-index:3}
+.slot{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 4px}
+.cust{display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;animation:walkin .35s ease-out}
+@keyframes walkin{from{transform:translateY(24px);opacity:0}}
+.bubble{position:relative;background:var(--panel);border-radius:12px;padding:5px;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;max-width:100%;box-shadow:0 2px 0 rgba(29,36,64,.15)}
+.bubble::after{content:"";position:absolute;bottom:-6px;left:50%;margin-left:-6px;border:6px solid transparent;border-bottom:0;border-top-color:var(--panel)}
+.chip{font-size:11.5px;font-weight:700;line-height:1.5;padding:0 7px;border-radius:99px;background:var(--c);color:#fff;white-space:nowrap}
+.chip.done{opacity:.3;text-decoration:line-through}
+.face{font-size:40px;line-height:1;margin-top:2px}
+.pat{width:60px;height:6px;border-radius:9px;background:rgba(29,36,64,.15);overflow:hidden}
+.pat i{display:block;height:100%;background:var(--good);border-radius:9px}
+.pat.low i{background:var(--bad)}
+.tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--rani);height:12px;line-height:12px}
+.counter{position:absolute;left:0;right:0;bottom:0;height:62px;background:linear-gradient(var(--wood-2),var(--wood));border-top:6px solid var(--marigold);z-index:4}
+.kulhads{position:absolute;right:14px;bottom:14px;display:flex;gap:3px;align-items:flex-end}
+.kulhads span{width:14px;height:18px;background:var(--clay);border-radius:3px 3px 6px 6px;box-shadow:inset 0 3px 0 rgba(0,0,0,.18)}
+.kulhads span:nth-child(2){height:22px}
+.radio{position:absolute;left:14px;bottom:14px;font-size:26px;display:none}
+.scene.music .radio{display:block}
+.rangoli{position:absolute;left:50%;bottom:8px;margin-left:-22px;width:44px;height:44px;border-radius:50%;display:none;background:radial-gradient(circle,var(--panel) 0 5px,transparent 6px),repeating-conic-gradient(var(--rani) 0 15deg,var(--marigold) 15deg 30deg,var(--teal) 30deg 45deg)}
+.scene.rangoli-on .rangoli{display:block}
+.float{position:absolute;z-index:6;font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--good);pointer-events:none;text-shadow:0 2px 0 var(--panel);animation:rise .9s ease-out forwards;transform:translateX(-50%)}
+.float.miss{color:var(--bad);font-size:15px}
+@keyframes rise{to{transform:translate(-50%,-46px);opacity:0}}
+.hint{position:absolute;left:10px;right:10px;bottom:70px;z-index:7;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.35;display:flex;gap:10px;align-items:center}
+.hint button{border:0;background:var(--marigold);color:var(--ink);border-radius:10px;padding:4px 12px;font-weight:700;flex:none}
+
+/* counter controls */
+.controls{display:grid;grid-template-columns:92px minmax(0,1fr);gap:10px;padding-block:10px 6px}
+.kettle{border:3px solid var(--teal);background:var(--panel);border-radius:16px;padding:8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;overflow:hidden}
+.kettle .lab{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--ink-2)}
+.kettle .cups{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1;color:var(--teal-d);font-variant-numeric:tabular-nums}
+.kettle .act{font-size:12px;font-weight:700;color:var(--rani)}
+.kettle .fill{position:absolute;left:0;bottom:0;height:5px;background:var(--marigold);width:0}
+.kettle.empty{border-color:var(--rani);animation:nudge 1s infinite}
+@keyframes nudge{50%{transform:scale(1.04)}}
+.items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-content:start}
+.item{border:2px solid var(--line);background:var(--panel);border-radius:14px;padding:7px 8px;text-align:left;display:flex;flex-direction:column;gap:1px;min-height:58px;min-width:0;transition:transform .08s}
+.item:active{transform:scale(.95)}
+.item .sw{width:16px;height:16px;background:var(--c);border-radius:4px 4px 8px 8px}
+.item .sw.snack{border-radius:50%}
+.item b{font-size:13px;line-height:1.15;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item small{font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.item.off{opacity:.4}
+
+/* nav */
+.nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding-block:4px 10px}
+.nav button{border:0;background:var(--panel);border-radius:12px;padding:8px 2px;font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--teal-d);border-bottom:3px solid var(--line)}
+.nav button.hot{color:var(--rani)}
+
+/* sheets */
+.backdrop{position:fixed;inset:0;background:var(--shade);z-index:20;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;max-height:84%;overflow-y:auto;background:var(--panel);border-radius:22px 22px 0 0;z-index:21;transform:translateY(105%);transition:transform .25s ease-out;padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));padding-block:14px calc(18px + env(safe-area-inset-bottom,0px))}
+.sheet.open{transform:none}
+.sh-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.sh-head h2{margin:0;font-family:var(--f-display);font-size:24px;font-weight:800;color:var(--teal-d)}
+.x{border:0;background:var(--wash);border-radius:50%;width:34px;height:34px;font-size:18px;line-height:1}
+.sec{margin-top:14px}
+.sec h3{margin:0 0 2px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row h4{margin:0;font-family:var(--f-display);font-size:17px;font-weight:700;line-height:1.2}
+.row p{margin:1px 0 0;font-size:13px;color:var(--ink-2);line-height:1.3}
+.buy{border:0;border-radius:99px;padding:6px 13px;font-weight:700;display:flex;align-items:center;gap:5px;background:var(--marigold);color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.buy.tkn{background:var(--rani);color:#fff}
+.buy.tkn .tok{background:#fff;box-shadow:none}
+.buy.real{background:var(--teal);color:#fff}
+.buy.poor{opacity:.45}
+.buy[disabled]{background:var(--wash);color:var(--ink-2);cursor:default}
+.note{background:var(--wash);border-radius:12px;padding:9px 12px;font-size:13px;color:var(--ink-2);line-height:1.4;margin-top:8px}
+.offer{border:3px solid var(--rani);border-radius:16px;padding:12px;margin-top:10px;background:linear-gradient(135deg,#fff 60%,#fde7f0)}
+.offer .row{border:0;padding:0}
+.offer .badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:var(--rani);color:#fff;border-radius:6px;padding:0 6px;margin-bottom:4px}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:8px}
+.week div{border:2px solid var(--line);border-radius:10px;text-align:center;padding:5px 0;font-size:12px;font-weight:700;color:var(--ink-2)}
+.week div b{display:block;font-family:var(--f-display);font-size:15px;color:var(--ink)}
+.week div.got{background:var(--wash);border-color:var(--teal);color:var(--teal)}
+.week div.today{border-color:var(--rani)}
+.prog{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin-top:5px;max-width:200px}
+.prog i{display:block;height:100%;background:var(--teal)}
+.big{font-family:var(--f-display);font-size:34px;font-weight:800;color:var(--teal-d);text-align:center;margin:10px 0 2px;font-variant-numeric:tabular-nums}
+.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.btns .buy{padding:9px 18px;font-size:15px}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translate(-50%,-20px);background:var(--ink);color:#fff;padding:8px 16px;border-radius:99px;font-weight:600;font-size:14px;z-index:40;opacity:0;transition:all .2s;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-height:640px){.scene{min-height:210px}.face{font-size:32px}.item{min-height:50px;padding:5px 7px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="place">
+      <h1 id="cityName">Ahmedabad</h1>
+      <div class="lvl"><span id="tierName">Stall</span><span class="bar"><i id="tierBar"></i></span><span id="tierText"></span></div>
+    </div>
+    <div class="pill"><span class="coin"></span><span id="coins">0</span></div>
+    <button class="pill tk" id="tokBtn" aria-label="Tokens, open shop"><span class="tok"></span><span id="tokens">0</span><span class="plus">+</span></button>
+    <button class="gift" id="giftBtn">Daily<span class="dot" id="giftDot" hidden></span></button>
+  </header>
+
+  <section class="scene" id="scene" aria-label="Your chai stall">
+    <div class="awning"></div>
+    <div class="sign" id="sign">Chai Empire<small id="signCity">Ahmedabad</small></div>
+    <div class="lights"></div>
+    <div class="combo" id="combo">Combo x0</div>
+    <div class="boost" id="boost" hidden>2x coins</div>
+    <div class="queue" id="queue"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+    <div class="counter"><span class="radio">📻</span><span class="rangoli"></span><span class="kulhads"><span></span><span></span><span></span></span></div>
+    <div class="hint" id="hint" hidden><span>Tap the items each customer asks for. Every chai uses one cup from the kettle, so brew more when it runs out.</span><button id="hintOk">Got it</button></div>
+  </section>
+
+  <section class="controls">
+    <button class="kettle" id="kettle"><span class="lab">Kettle</span><span class="cups" id="cups">6/6</span><span class="act" id="kAct">Full</span><span class="fill" id="kFill"></span></button>
+    <div class="items" id="items"></div>
+  </section>
+
+  <nav class="nav">
+    <button data-open="upgrade">Upgrade</button>
+    <button data-open="staff">Staff</button>
+    <button data-open="shop" class="hot">Shop</button>
+    <button data-open="city">Cities</button>
+  </nav>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const RECIPES = {
+  masala:  {n:'Masala Chai',  city:'ahd', chai:true,  p:8,  c:'#a4561f', cost:0},
+  khakhra: {n:'Khakhra',      city:'ahd', chai:false, p:6,  c:'#c27f1f', cost:0},
+  adrak:   {n:'Adrak Chai',   city:'ahd', chai:true,  p:11, c:'#7d6410', cost:180,  cur:'coins'},
+  thepla:  {n:'Thepla',       city:'ahd', chai:false, p:10, c:'#55822a', cost:420,  cur:'coins'},
+  rose:    {n:'Rose Chai',    city:'ahd', chai:true,  p:20, c:'#c42a69', cost:200,  cur:'tokens'},
+  kesar:   {n:'Kesar Chai',   city:'ahd', chai:true,  p:26, c:'#d07a08', cost:300,  cur:'tokens'},
+  cutting: {n:'Cutting Chai', city:'mum', chai:true,  p:14, c:'#934a19', cost:0},
+  vadapav: {n:'Vada Pav',     city:'mum', chai:false, p:16, c:'#b07a0c', cost:0},
+  bunmaska:{n:'Bun Maska',    city:'mum', chai:false, p:20, c:'#66771f', cost:2400, cur:'coins'},
+  tandoori:{n:'Tandoori Chai',city:'mum', chai:true,  p:40, c:'#b3361f', cost:400,  cur:'tokens'},
+};
+const CITIES = {
+  ahd:{n:'Ahmedabad', tiers:[0,1500,6000], dish:'Masala chai and khakhra'},
+  mum:{n:'Mumbai', tiers:[0,6000,24000], dish:'Cutting chai and vada pav', unlock:2500},
+};
+const SOON = ['Delhi','Kolkata','Hyderabad','Chennai','Darjeeling','Kashmir'];
+const TIERS = ['Stall','Café','Flagship'], TIER_MULT = [1,1.2,1.45];
+const TYPES = [
+  {n:'Student',f:'🧑',w:30,tip:.6,pat:1},
+  {n:'Office worker',f:'👨',w:28,tip:.8,pat:.85},
+  {n:'Auto driver',f:'🧔',w:22,tip:1,pat:1.15},
+  {n:'Aunty',f:'👵',w:12,tip:1.2,pat:1.1},
+  {n:'Tourist',f:'😎',w:8,tip:2.5,pat:.8,tourist:true},
+];
+const UPGRADES = {
+  kettle:{n:'Bigger kettle', base:60,  max:10, d:l=>`${maxCupsAt(l)} cups per brew`},
+  brew:  {n:'Faster stove',  base:80,  max:10, d:l=>`Brews in ${brewTimeAt(l).toFixed(1)}s`},
+  cups:  {n:'Better cups',   base:120, max:10, d:l=>`+${Math.round((l-1)*15)}% price per order`},
+  seats: {n:'Benches',       base:100, max:10, d:l=>`Customers wait ${Math.round((l-1)*12)}% longer`},
+};
+const DECOR = {
+  lights: {n:'Fairy lights',    cost:400, cur:'coins',  b:.05, cls:'lit'},
+  radio:  {n:'Old radio',       cost:900, cur:'coins',  b:.05, cls:'music'},
+  rangoli:{n:'Rangoli',         cost:120, cur:'tokens', b:.08, cls:'rangoli-on'},
+  board:  {n:'Truck-art board', cost:250, cur:'tokens', b:.12, cls:'board'},
+};
+const PACKS = {
+  starter:{n:'Starter Offer', t:400, price:49, once:true, extra:'+ Golden Kettle (2 extra cups, forever)'},
+  pouch:{n:'Pouch', t:100, price:19},
+  jar:{n:'Jar', t:550, price:99, bonus:'+10%'},
+  crate:{n:'Crate', t:3000, price:499, bonus:'+20%', best:true},
+  truck:{n:'Truckload', t:13000, price:1999, bonus:'+30%'},
+  pass:{n:'Chai Pass', t:0, price:149, extra:'60 Tokens every day for 30 days'},
+};
+const MISSIONS = [
+  {id:'served', n:'Serve 25 customers', goal:25, r:5},
+  {id:'combo', n:'Reach a 10x combo', goal:10, r:5},
+  {id:'earned', n:'Earn 1,000 coins', goal:1000, r:5},
+];
+
+const fmt = n => Math.floor(n).toLocaleString('en-IN');
+const today = () => new Date().toLocaleDateString('en-CA');
+const $ = id => document.getElementById(id);
+
+function freshState(){
+  return {coins:40, tokens:25, city:'ahd', earned:{ahd:0,mum:0}, unlocked:{ahd:true,mum:false},
+    upg:{kettle:1,brew:1,cups:1,seats:1}, staff:{chotu:0,dada:false,cap8:false},
+    recipes:{masala:true,khakhra:true,cutting:true,vadapav:true}, decor:{},
+    daily:{last:'',streak:0}, m:{date:'',served:0,combo:0,earned:0,claimed:[]},
+    pass:{until:0,last:''}, starter:false, golden:false, boostUntil:0, served:0, lastSeen:Date.now(), hintSeen:false};
+}
+let S = freshState();
+function load(){
+  try{ const raw = localStorage.getItem('chai-empire-v1'); if(raw){ S = Object.assign(freshState(), JSON.parse(raw)); } }catch(e){}
+}
+function save(){ S.lastSeen = Date.now(); try{ localStorage.setItem('chai-empire-v1', JSON.stringify(S)); }catch(e){} return S; }
+
+const G = {cust:[null,null,null], spawnT:1.2, cups:0, brewing:false, brewT:0, combo:0, id:1, staffAcc:0};
+
+/* derived numbers */
+function maxCupsAt(l){ return 4 + 2*(l-1) + (S.golden?2:0); }
+function brewTimeAt(l){ return 7/(1+.3*(l-1)); }
+const maxCups = () => maxCupsAt(S.upg.kettle);
+const brewTime = () => brewTimeAt(S.upg.brew)/(S.staff.dada?2:1);
+const cupMult = () => 1 + .15*(S.upg.cups-1);
+const patMax = () => 20*(1+.12*(S.upg.seats-1));
+const spawnEvery = () => Math.max(1.3, 4/(1+.1*(S.upg.seats-1)));
+const decorBonus = () => Object.keys(S.decor).reduce((a,k)=>a+(S.decor[k]?DECOR[k].b:0),0);
+function tierOf(c){ const t=CITIES[c].tiers, e=S.earned[c]||0; return e>=t[2]?2:e>=t[1]?1:0; }
+const upgCost = k => Math.round(UPGRADES[k].base*Math.pow(1.7,S.upg[k]-1));
+const chotuCost = () => Math.round(250*Math.pow(2.2,S.staff.chotu));
+const staffRate = () => (S.staff.chotu? S.staff.chotu/6 : 0) + (S.staff.dada? 1/1.8 : 0);
+const menu = () => Object.keys(RECIPES).filter(k=>RECIPES[k].city===S.city && S.recipes[k]);
+function avgItem(){ const m=menu(); return m.reduce((a,k)=>a+RECIPES[k].p,0)/m.length*TIER_MULT[tierOf(S.city)]*cupMult(); }
+
+/* ui helpers */
+let toastT;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),1800); }
+function floatAt(slot,text,miss){
+  const sc=$('scene'), el=document.createElement('span'); el.className='float'+(miss?' miss':''); el.textContent=text;
+  el.style.left=((slot+.5)/3*100)+'%'; el.style.top='38%'; sc.appendChild(el); setTimeout(()=>el.remove(),950);
+}
+function spend(cur,amt){
+  if(S[cur] >= amt){ S[cur]-=amt; renderTop(); return true; }
+  if(cur==='tokens'){ toast('Not enough Tokens'); setTimeout(()=>openSheet('shop'),500); }
+  else toast(`You need ${fmt(amt-S.coins)} more coins`);
+  return false;
+}
+function missionDay(){ if(S.m.date!==today()){ S.m={date:today(),served:0,combo:0,earned:0,claimed:[]}; } }
+
+/* rendering */
+function renderTop(){
+  const c=CITIES[S.city], t=tierOf(S.city), e=S.earned[S.city]||0;
+  $('cityName').textContent=c.n; $('signCity').textContent=c.n;
+  $('tierName').textContent=TIERS[t];
+  if(t<2){ const lo=c.tiers[t], hi=c.tiers[t+1]; $('tierBar').style.width=Math.min(100,(e-lo)/(hi-lo)*100)+'%'; $('tierText').textContent=`${fmt(e)}/${fmt(hi)}`; }
+  else { $('tierBar').style.width='100%'; $('tierText').textContent='Top level'; }
+  $('coins').textContent=fmt(S.coins); $('tokens').textContent=fmt(S.tokens);
+  $('giftDot').hidden = !(dailyReady() || missionsReady() || passReady());
+  const sc=$('scene'); Object.keys(DECOR).forEach(k=>sc.classList.toggle(DECOR[k].cls,!!S.decor[k]));
+}
+function renderItems(){
+  $('items').innerHTML = menu().map(k=>{ const r=RECIPES[k];
+    const price=Math.round(r.p*TIER_MULT[tierOf(S.city)]*cupMult());
+    return `<button class="item${r.chai&&G.cups===0?' off':''}" data-k="${k}" style="--c:${r.c}"><span class="sw${r.chai?'':' snack'}"></span><b>${r.n}</b><small>${price} coins</small></button>`; }).join('');
+}
+function renderKettle(){
+  const k=$('kettle'); $('cups').textContent=`${G.cups}/${maxCups()}`;
+  $('kAct').textContent = G.brewing?'Brewing…':G.cups>=maxCups()?'Full':'Tap to brew';
+  k.classList.toggle('empty', G.cups===0 && !G.brewing);
+  $('kFill').style.width = G.brewing? (G.brewT/brewTime()*100)+'%' : '0';
+}
+function renderQueue(){
+  const slots=$('queue').children;
+  G.cust.forEach((c,i)=>{
+    if(!c){ slots[i].innerHTML=''; return; }
+    if(slots[i].dataset.id==c.id && !c.dirty) return;
+    c.dirty=false; slots[i].dataset.id=c.id;
+    slots[i].innerHTML=`<div class="cust"><div class="bubble">${c.order.map(o=>`<span class="chip${o.done?' done':''}" style="--c:${RECIPES[o.k].c}">${RECIPES[o.k].n.replace(' Chai','')}</span>`).join('')}</div><div class="face">${c.t.f}</div><div class="pat"><i></i></div><div class="tag">${c.t.tourist?'Tourist':''}</div></div>`;
+  });
+  updatePatience();
+}
+function updatePatience(){
+  const slots=$('queue').children;
+  G.cust.forEach((c,i)=>{ if(!c) return; const bar=slots[i].querySelector('.pat'); if(!bar) return;
+    const f=Math.max(0,c.pat/c.max); bar.firstChild.style.width=(f*100)+'%'; bar.classList.toggle('low',f<.3); });
+}
+function renderCombo(){ const el=$('combo'); el.textContent=`Combo x${G.combo}`; el.classList.toggle('on',G.combo>=3); }
+
+/* gameplay */
+function spawn(){
+  const free=G.cust.findIndex(c=>!c); if(free<0) return;
+  let r=Math.random()*TYPES.reduce((a,t)=>a+t.w,0), t=TYPES[0];
+  for(const ty of TYPES){ r-=ty.w; if(r<=0){ t=ty; break; } }
+  const m=menu(), tier=tierOf(S.city);
+  let size=1+(Math.random()<.45?1:0)+(tier>=1&&Math.random()<.2?1:0);
+  const order=[];
+  const premium=m.filter(k=>RECIPES[k].cur==='tokens');
+  if(t.tourist && premium.length){ order.push({k:premium[Math.floor(Math.random()*premium.length)],done:false}); size--; }
+  for(let i=0;i<size;i++) order.push({k:m[Math.floor(Math.random()*m.length)],done:false});
+  const max=patMax()*t.pat;
+  G.cust[free]={id:G.id++,t,order,pat:max,max,dirty:true};
+  renderQueue();
+}
+function serve(k, byStaff){
+  const r=RECIPES[k];
+  if(r.chai && G.cups<=0){ if(!byStaff) toast('Kettle is empty. Tap it to brew.'); return false; }
+  for(let i=0;i<3;i++){ const c=G.cust[i]; if(!c) continue;
+    const o=c.order.find(o=>o.k===k&&!o.done);
+    if(o){ o.done=true; c.dirty=true; if(r.chai){ G.cups--; renderKettle(); renderItems(); }
+      if(c.order.every(o=>o.done)) pay(i); else renderQueue(); return true; }
+  }
+  if(!byStaff){ toast(`Nobody ordered ${r.n} right now`); }
+  return false;
+}
+function pay(i){
+  const c=G.cust[i];
+  const base=c.order.reduce((a,o)=>a+RECIPES[o.k].p,0)*TIER_MULT[tierOf(S.city)]*cupMult();
+  const tip=base*.3*c.t.tip*(c.pat/c.max);
+  G.combo++; const comboB=Math.min(.5,G.combo*.05);
+  const boost = Date.now()<S.boostUntil?2:1;
+  const amt=Math.max(1,Math.round((base+tip)*(1+decorBonus())*(1+comboB)*boost));
+  const before=tierOf(S.city);
+  S.coins+=amt; S.earned[S.city]=(S.earned[S.city]||0)+amt; S.served++;
+  missionDay(); S.m.served++; S.m.earned+=amt; S.m.combo=Math.max(S.m.combo,G.combo);
+  floatAt(i,`+${amt}`);
+  G.cust[i]=null; renderQueue(); renderCombo(); renderTop();
+  const after=tierOf(S.city);
+  if(after>before){ toast(`Your stall is now a ${TIERS[after]}! Prices up.`); renderItems(); }
+}
+function tick(){
+  const dt=.1;
+  // brewing
+  if(G.brewing){ G.brewT+=dt; if(G.brewT>=brewTime()){ G.brewing=false; G.brewT=0; G.cups=maxCups(); renderItems(); } renderKettle(); }
+  else if(G.cups===0 && (S.staff.chotu||S.staff.dada)){ G.brewing=true; G.brewT=0; renderKettle(); }
+  // customers
+  let changed=false;
+  G.cust.forEach((c,i)=>{ if(!c) return; c.pat-=dt; if(c.pat<=0){ G.cust[i]=null; changed=true; G.combo=0; renderCombo(); floatAt(i,'Left',true); } });
+  if(changed) renderQueue(); else updatePatience();
+  G.spawnT-=dt; if(G.spawnT<=0){ G.spawnT=spawnEvery()*(.7+Math.random()*.6); spawn(); }
+  // staff
+  const rate=staffRate();
+  if(rate>0){ G.staffAcc+=dt*rate; if(G.staffAcc>=1){ G.staffAcc-=1;
+    const need=[]; G.cust.forEach(c=>c&&c.order.forEach(o=>{ if(!o.done) need.push(o.k); }));
+    const pick=need.find(k=>!RECIPES[k].chai||G.cups>0); if(pick) serve(pick,true); else G.staffAcc=Math.min(G.staffAcc,1); } }
+  // boost label
+  const left=S.boostUntil-Date.now(); const b=$('boost'); b.hidden=left<=0; if(left>0) b.textContent=`2x coins ${Math.ceil(left/60000)}m`;
+}
+
+/* daily + missions */
+function dailyReady(){ return S.daily.last!==today(); }
+function passReady(){ return Date.now()<S.pass.until && S.pass.last!==today(); }
+function missionsReady(){ missionDay(); return MISSIONS.some(m=>S.m[m.id]>=m.goal && !S.m.claimed.includes(m.id)); }
+function streakDay(){ const y=new Date(Date.now()-864e5).toLocaleDateString('en-CA'); return S.daily.last===y ? (S.daily.streak%7)+1 : 1; }
+
+/* sheets */
+const coinTag = n => `<span class="coin"></span>${fmt(n)}`;
+const tokTag = n => `<span class="tok"></span>${fmt(n)}`;
+function priceBtn(act,cur,amt){ const poor=S[cur]<amt; return `<button class="buy${cur==='tokens'?' tkn':''}${poor?' poor':''}" data-act="${act}">${cur==='tokens'?tokTag(amt):coinTag(amt)}</button>`; }
+const head = t => `<div class="sh-head"><h2>${t}</h2><button class="x" data-act="close" aria-label="Close">✕</button></div>`;
+
+const SHEETS = {
+  upgrade(){
+    let h=head('Upgrade')+'<div class="sec"><h3>Stall</h3>';
+    for(const k in UPGRADES){ const u=UPGRADES[k], l=S.upg[k];
+      h+=`<div class="row"><div><h4>${u.n} · Lv ${l}</h4><p>${l>=u.max?u.d(l):`${u.d(l)} → ${u.d(l+1)}`}</p></div>${l>=u.max?'<button class="buy" disabled>Max</button>':priceBtn('upg:'+k,'coins',upgCost(k))}</div>`; }
+    h+='</div><div class="sec"><h3>Recipes in '+CITIES[S.city].n+'</h3>';
+    Object.keys(RECIPES).filter(k=>RECIPES[k].city===S.city).forEach(k=>{ const r=RECIPES[k];
+      h+=`<div class="row"><div><h4>${r.n}</h4><p>${r.p} coins base · ${r.chai?'uses a kettle cup':'snack, no cup needed'}${r.cur==='tokens'?' · tourists love it':''}</p></div>${S.recipes[k]?'<button class="buy" disabled>On menu</button>':priceBtn('recipe:'+k,r.cur,r.cost)}</div>`; });
+    h+='</div><div class="sec"><h3>Decorations</h3>';
+    for(const k in DECOR){ const d=DECOR[k];
+      h+=`<div class="row"><div><h4>${d.n}</h4><p>+${Math.round(d.b*100)}% on every order</p></div>${S.decor[k]?'<button class="buy" disabled>Owned</button>':priceBtn('decor:'+k,d.cur,d.cost)}</div>`; }
+    return h+'</div>';
+  },
+  staff(){
+    const l=S.staff.chotu;
+    let h=head('Staff')+'<div class="sec"><h3>Your team</h3>';
+    h+=`<div class="row"><div><h4>Chotu · ${l?'Lv '+l:'not hired'}</h4><p>${l?`Serves an item every ${(6/l).toFixed(1)}s and brews when the kettle runs dry.`:'Helper who serves on his own and refills the kettle.'}${l<5?` Next: every ${(6/(l+1)).toFixed(1)}s.`:''}</p></div>${l>=5?'<button class="buy" disabled>Max</button>':priceBtn('staff:chotu','coins',chotuCost())}</div>`;
+    h+=`<div class="row"><div><h4>Chai Wala Dada</h4><p>Legendary brewer. Serves an item every 1.8s and brews twice as fast.</p></div>${S.staff.dada?'<button class="buy" disabled>Hired</button>':priceBtn('staff:dada','tokens',500)}</div>`;
+    h+=`<div class="row"><div><h4>Night shift</h4><p>Staff keep earning for 8 hours while you are away, instead of 4.</p></div>${S.staff.cap8?'<button class="buy" disabled>Owned</button>':priceBtn('staff:cap','tokens',300)}</div>`;
+    const perMin=Math.round(staffRate()*avgItem()*.5*60);
+    h+=`</div><p class="note">${perMin?`While you are away, your staff earn about ${fmt(perMin)} coins a minute, for up to ${S.staff.cap8?8:4} hours.`:'Hire staff to keep earning coins while the game is closed.'}</p>`;
+    return h;
+  },
+  shop(){
+    let h=head('Token shop')+`<p class="note">Test mode. In the Play Store version these buttons open Google Play Billing. Here no money is charged and Tokens are added for free.</p>`;
+    if(!S.starter){ const p=PACKS.starter;
+      h+=`<div class="offer"><span class="badge">One time only</span><div class="row"><div><h4>${p.n}: ${fmt(p.t)} Tokens</h4><p>${p.extra}</p></div><button class="buy real" data-act="pack:starter">₹${p.price}</button></div></div>`; }
+    h+='<div class="sec"><h3>Token packs</h3>';
+    ['pouch','jar','crate','truck'].forEach(k=>{ const p=PACKS[k];
+      h+=`<div class="row"><div><h4>${p.n} · ${fmt(p.t)} Tokens</h4><p>${p.bonus?p.bonus+' bonus':'Quick top-up'}${p.best?' · best value':''}</p></div><button class="buy real" data-act="pack:${k}">₹${fmt(p.price)}</button></div>`; });
+    const on=Date.now()<S.pass.until;
+    h+=`<div class="row"><div><h4>Chai Pass · monthly</h4><p>${on?`Active for ${Math.ceil((S.pass.until-Date.now())/864e5)} more days. Claim in Daily.`:PACKS.pass.extra+', 1,800 in total.'}</p></div>${on?'<button class="buy" disabled>Active</button>':`<button class="buy real" data-act="pack:pass">₹${PACKS.pass.price}</button>`}</div>`;
+    h+='</div><div class="sec"><h3>Spend Tokens</h3>';
+    h+=`<div class="row"><div><h4>Rush hour</h4><p>Double coins from every order for 5 minutes.</p></div>${priceBtn('spend:boost','tokens',40)}</div>`;
+    const bundle=Math.round(1000*TIER_MULT[tierOf(S.city)]);
+    h+=`<div class="row"><div><h4>Coin sack</h4><p>Get ${fmt(bundle)} coins right now.</p></div>${priceBtn('spend:coins','tokens',50)}</div>`;
+    h+=`<div class="row"><div><h4>Instant brew</h4><p>Fill the kettle this second.</p></div>${priceBtn('spend:brew','tokens',5)}</div>`;
+    return h+'</div>';
+  },
+  city(){
+    let h=head('Cities')+'<div class="sec"><h3>Your chain</h3>';
+    for(const id in CITIES){ const c=CITIES[id], t=tierOf(id), here=S.city===id;
+      let btn;
+      if(here) btn='<button class="buy" disabled>You are here</button>';
+      else if(S.unlocked[id]) btn=`<button class="buy" data-act="city:${id}">Go</button>`;
+      else btn = tierOf('ahd')>=2 ? priceBtn('unlock:'+id,'coins',c.unlock) : '<button class="buy" disabled>Locked</button>';
+      const sub = S.unlocked[id] ? `${TIERS[t]} · ${fmt(S.earned[id]||0)} coins earned here` : `${c.dish}. Opens when Ahmedabad becomes a Flagship.`;
+      h+=`<div class="row"><div><h4>${c.n}</h4><p>${sub}</p></div>${btn}</div>`; }
+    h+='</div><div class="sec"><h3>Coming in updates</h3>';
+    SOON.forEach(n=>{ h+=`<div class="row"><div><h4>${n}</h4><p>New recipes and customers</p></div><button class="buy" disabled>Soon</button></div>`; });
+    return h+'</div>';
+  },
+  daily(){
+    missionDay();
+    const ready=dailyReady(), day=ready?streakDay():((S.daily.streak-1)%7)+1;
+    let h=head('Daily')+'<div class="sec"><h3>Login reward</h3><div class="week">';
+    for(let d=1;d<=7;d++){ const got = ready? d<day : d<=day; h+=`<div class="${got?'got':''}${ready&&d===day?' today':''}">Day ${d}<b>${d===7?25:5}</b></div>`; }
+    h+=`</div><div class="btns">${ready?`<button class="buy tkn" data-act="daily:claim">Claim ${tokTag(day===7?25:5)}</button>`:'<button class="buy" disabled>Come back tomorrow</button>'}</div></div>`;
+    if(Date.now()<S.pass.until){ h+=`<div class="sec"><h3>Chai Pass</h3><div class="row"><div><h4>60 Tokens today</h4><p>${Math.ceil((S.pass.until-Date.now())/864e5)} days left on your pass</p></div>${passReady()?'<button class="buy tkn" data-act="pass:claim">Claim</button>':'<button class="buy" disabled>Claimed</button>'}</div></div>`; }
+    h+='<div class="sec"><h3>Today\'s missions</h3>';
+    MISSIONS.forEach(m=>{ const v=Math.min(m.goal,S.m[m.id]), done=v>=m.goal, cl=S.m.claimed.includes(m.id);
+      h+=`<div class="row"><div><h4>${m.n}</h4><p>${fmt(v)} / ${fmt(m.goal)}</p><div class="prog"><i style="width:${v/m.goal*100}%"></i></div></div>${cl?'<button class="buy" disabled>Done</button>':done?`<button class="buy tkn" data-act="mission:${m.id}">Claim ${tokTag(m.r)}</button>`:`<button class="buy" disabled>${tokTag(m.r)}</button>`}</div>`; });
+    return h+'</div>';
+  },
+};
+let current=null;
+function openSheet(name, html){
+  current=name; $('sheet').innerHTML = html || SHEETS[name]();
+  $('sheet').classList.add('open'); $('backdrop').classList.add('open');
+}
+function refreshSheet(){ if(current && SHEETS[current]){ const st=$('sheet').scrollTop; $('sheet').innerHTML=SHEETS[current](); $('sheet').scrollTop=st; } }
+function closeSheet(){ current=null; $('sheet').classList.remove('open'); $('backdrop').classList.remove('open'); }
+
+function confirmPack(k){
+  const p=PACKS[k];
+  openSheet('confirm', head('Confirm purchase')+`<div class="big">${p.t?tokTag(p.t):'Chai Pass'}</div><p class="note" style="text-align:center">${p.extra||p.n+' pack'}<br>Price in the real app: ₹${fmt(p.price)} through Google Play.<br>This is a test build, so nothing is charged.</p><div class="btns"><button class="buy" data-act="back:shop">Cancel</button><button class="buy real" data-act="packok:${k}">Add for free (test)</button></div>`);
+}
+
+function act(a){
+  const [type,key]=a.split(':');
+  switch(type){
+    case 'close': closeSheet(); return;
+    case 'back': openSheet(key); return;
+    case 'upg': if(spend('coins',upgCost(key))){ S.upg[key]++; toast(`${UPGRADES[key].n} upgraded`); renderItems(); renderKettle(); } break;
+    case 'recipe': { const r=RECIPES[key]; if(spend(r.cur,r.cost)){ S.recipes[key]=true; toast(`${r.n} added to the menu`); renderItems(); } break; }
+    case 'decor': { const d=DECOR[key]; if(spend(d.cur,d.cost)){ S.decor[key]=true; toast(`${d.n} put up`); renderTop(); } break; }
+    case 'staff':
+      if(key==='chotu' && spend('coins',chotuCost())){ S.staff.chotu++; toast(S.staff.chotu===1?'Chotu is hired':'Chotu got faster'); }
+      if(key==='dada' && spend('tokens',500)){ S.staff.dada=true; toast('Chai Wala Dada joined your stall'); }
+      if(key==='cap' && spend('tokens',300)){ S.staff.cap8=true; toast('Night shift unlocked'); }
+      break;
+    case 'pack': confirmPack(key); return;
+    case 'packok': { const p=PACKS[key];
+      if(key==='pass'){ S.pass.until=Date.now()+30*864e5; S.pass.last=''; toast('Chai Pass active. Claim 60 Tokens in Daily.'); }
+      else { S.tokens+=p.t; toast(`+${fmt(p.t)} Tokens added`); }
+      if(key==='starter'){ S.starter=true; S.golden=true; renderKettle(); }
+      renderTop(); save(); openSheet('shop'); return; }
+    case 'spend':
+      if(key==='boost' && spend('tokens',40)){ S.boostUntil=Math.max(Date.now(),S.boostUntil)+5*60000; toast('Rush hour! 2x coins for 5 minutes'); }
+      if(key==='coins'){ const n=Math.round(1000*TIER_MULT[tierOf(S.city)]); if(spend('tokens',50)){ S.coins+=n; toast(`+${fmt(n)} coins`); } }
+      if(key==='brew' && spend('tokens',5)){ G.cups=maxCups(); G.brewing=false; G.brewT=0; renderKettle(); renderItems(); toast('Kettle filled'); }
+      break;
+    case 'city': S.city=key; G.cust=[null,null,null]; G.combo=0; [...$('queue').children].forEach(s=>s.dataset.id=''); renderQueue(); renderItems(); renderCombo(); toast(`Welcome to ${CITIES[key].n}`); closeSheet(); renderTop(); save(); return;
+    case 'unlock': if(spend('coins',CITIES[key].unlock)){ S.unlocked[key]=true; toast(`${CITIES[key].n} stall opened!`); } break;
+    case 'daily': { const d=streakDay(), r=d===7?25:5; S.tokens+=r; S.daily.last=today(); S.daily.streak=d; toast(`+${r} Tokens`); break; }
+    case 'pass': if(passReady()){ S.tokens+=60; S.pass.last=today(); toast('+60 Tokens from Chai Pass'); } break;
+    case 'mission': { const m=MISSIONS.find(m=>m.id===key); S.m.claimed.push(key); S.tokens+=m.r; toast(`+${m.r} Tokens`); break; }
+  }
+  renderTop(); refreshSheet(); save();
+}
+
+/* offline earnings */
+function offlineCheck(){
+  const away=(Date.now()-(S.lastSeen||Date.now()))/1000;
+  const capped=Math.min(away,(S.staff.cap8?8:4)*3600);
+  const coins=Math.floor(staffRate()*avgItem()*.5*capped);
+  if(away<60 || coins<1) return;
+  const mins=Math.round(capped/60), txt=mins>=60?`${Math.floor(mins/60)}h ${mins%60}m`:`${mins} min`;
+  openSheet('away', head('While you were away')+`<p class="note" style="text-align:center">Your staff kept the stall running for ${txt}.</p><div class="big">${coinTag(coins)}</div><div class="btns"><button class="buy" id="awayTake">Collect</button><button class="buy tkn" id="awayDouble">Double for ${tokTag(20)}</button></div>`);
+  $('awayTake').onclick=()=>{ S.coins+=coins; S.earned[S.city]+=coins; closeSheet(); renderTop(); save(); toast(`+${fmt(coins)} coins`); };
+  $('awayDouble').onclick=()=>{ if(spend('tokens',20)){ S.coins+=coins*2; S.earned[S.city]+=coins*2; closeSheet(); renderTop(); save(); toast(`+${fmt(coins*2)} coins`); } };
+}
+
+/* events */
+$('items').addEventListener('click',e=>{ const b=e.target.closest('.item'); if(b) serve(b.dataset.k,false); });
+$('kettle').addEventListener('click',()=>{
+  if(G.brewing) return; if(G.cups>=maxCups()){ toast('Kettle is already full'); return; }
+  G.brewing=true; G.brewT=0; renderKettle();
+});
+document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>openSheet(b.dataset.open)));
+$('tokBtn').addEventListener('click',()=>openSheet('shop'));
+$('giftBtn').addEventListener('click',()=>openSheet('daily'));
+$('backdrop').addEventListener('click',closeSheet);
+$('sheet').addEventListener('click',e=>{ const b=e.target.closest('[data-act]'); if(b && !b.disabled) act(b.dataset.act); });
+$('hintOk').addEventListener('click',()=>{ $('hint').hidden=true; S.hintSeen=true; save(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) save(); });
+window.addEventListener('pagehide',save);
+
+function start(data){
+  if(data && data.S) S=Object.assign(freshState(),data.S); else load();
+  missionDay();
+  G.cups=maxCups();
+  renderTop(); renderItems(); renderKettle(); renderQueue(); renderCombo();
+  if(!S.hintSeen) $('hint').hidden=false;
+  offlineCheck();
+  setInterval(tick,100);
+  setInterval(()=>{ save(); renderTop(); if(current==='daily') refreshSheet(); },5000);
+}
+window.claude?.hot?.snapshot?.(()=>({S:save()}));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+</body>
+</html>
