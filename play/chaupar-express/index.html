@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chaupar Express · Gametro9</title>
+<meta name="theme-color" content="#14163a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--ink:#14163a;--g9-dim:#565a7e}
+html,body{height:100%;margin:0}
+body{background:#eef0fb;color:var(--ink);font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+main{flex:1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.seats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%;max-width:460px}
+.seat{background:#fff;border:2.5px solid #d4d8f0;border-radius:12px;padding:5px 6px;text-align:center;transition:.15s}
+.seat.on{border-color:var(--ink);box-shadow:3px 3px 0 var(--sc);transform:translate(-1px,-1px)}
+.seat b{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;white-space:nowrap;overflow:hidden}
+.seat b i{width:11px;height:11px;border-radius:50%;background:var(--sc);border:2px solid var(--ink);flex:none}
+.seat small{font:700 10.5px 'Overpass Mono',monospace;color:#565a7e}
+.seat.off{opacity:.3}
+.board{position:relative;width:min(100%,460px,calc(100vh - 250px));aspect-ratio:1;background:#fff;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);border-radius:18px;overflow:hidden}
+.cell{position:absolute;width:calc(100%/11);height:calc(100%/11);box-sizing:border-box;padding:2px}
+.cell::before{content:"";position:absolute;inset:2px;border-radius:7px;background:#e7eaf8}
+.cell.safe::before{background:var(--sc);opacity:.35}
+.cell.home::before{background:var(--sc);opacity:.85;border-radius:4px}
+.cell.ix::before{background:#14163a}
+.cell.ix::after{content:"";position:absolute;inset:28%;border-radius:50%;border:3px solid #ffc929}
+.cell.safe::after{content:"★";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--sc);font-size:13px;font-weight:900}
+.term{position:absolute;left:calc(100%*5/11);top:calc(100%*5/11);width:calc(100%/11);height:calc(100%/11);background:conic-gradient(#2f5bff 0 25%,#e89a00 0 50%,#f0412b 0 75%,#13a05c 0);border:2.5px solid var(--ink);box-sizing:border-box;border-radius:8px}
+.depot{position:absolute;width:calc(100%*4/11 - 8px);height:calc(100%*4/11 - 8px);border-radius:14px;border:2.5px dashed var(--sc);background:color-mix(in srgb,var(--sc) 10%,#fff);box-sizing:border-box}
+.depot span{position:absolute;bottom:4px;left:0;right:0;text-align:center;font:700 10px 'Overpass Mono',monospace;letter-spacing:.08em;color:var(--sc)}
+.tok{position:absolute;width:calc(100%/11*.74);height:calc(100%/11*.74);margin:calc(100%/11*.13);border-radius:30%;background:var(--sc);border:2.5px solid var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);box-sizing:border-box;transition:left .1s linear,top .1s linear;padding:0;cursor:default;z-index:2}
+.tok::after{content:"";position:absolute;left:22%;right:22%;top:24%;height:24%;background:#fff;border-radius:3px;opacity:.9}
+.tok.can{cursor:pointer;z-index:4;animation:bob .7s ease-in-out infinite;box-shadow:0 0 0 3px #ffc929}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.bar{display:flex;align-items:center;gap:12px;width:100%;max-width:460px}
+.status{flex:1;font-weight:800;font-size:15.5px;min-height:20px}
+.die{width:64px;height:64px;border-radius:16px;border:3px solid var(--ink);background:#fff;box-shadow:4px 4px 0 var(--sc,#14163a);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:9px;box-sizing:border-box;cursor:pointer;flex:none}
+.die:disabled{cursor:default;opacity:.65}
+.die.roll{animation:rl .45s ease-out}
+@keyframes rl{30%{transform:rotate(-25deg) scale(.9)}70%{transform:rotate(15deg)}}
+.die i{width:9px;height:9px;border-radius:50%;background:var(--ink);place-self:center;visibility:hidden}
+.die i.v{visibility:visible}
+.die.go{animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:6px 6px 0 var(--sc)}}
+.rule{max-width:460px;text-align:center;font-size:13px;color:#565a7e;font-weight:600;margin:0}
+@media (prefers-reduced-motion:reduce){.tok.can,.die.go,.die.roll{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="seats" id="seats"></div>
+  <div class="board" id="board" aria-label="Chaupar Express board"></div>
+  <div class="bar"><div class="status" id="status" aria-live="polite"></div><button class="die" id="die" aria-label="Roll the dice"></button></div>
+  <p class="rule">Roll a 6 to leave the depot. Land exactly on a <b>◎ interchange</b> to jump 10 stops ahead. ★ platforms are safe. Land on a rival train to send it back.</p>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'B-01',line:'Board & Cards line',color:'#8a3ffc'});
+const $=id=>document.getElementById(id);
+/* seats clockwise from the bottom: Red, Green, Blue, Gold */
+const SEAT=[{n:'Red',c:'#f0412b',m:25,dep:[6,1]},{n:'Green',c:'#13a05c',m:35,dep:[1,1]},{n:'Blue',c:'#2f5bff',m:5,dep:[1,6]},{n:'Gold',c:'#e89a00',m:15,dep:[6,6]}];
+const BOTN=['Meera','Kabir','Zoya'], HOME=44, CORNERS=[0,10,20,30];
+let players=[], turn=0, roll=0, sixes=0, mode='b3', level='Normal', over=true, busy=false, legal=[];
+function perim(i){ i=(i%40+40)%40; if(i<10) return [0,i]; if(i<20) return [i-10,10]; if(i<30) return [10,30-i]; return [40-i,0]; }
+const absIdx=(s,rel)=>rel>=0&&rel<=39?(SEAT[s].m+1+rel)%40:null;
+function cellOf(s,rel,k){ if(rel<0){ const [r0,c0]=SEAT[s].dep; return [r0+1+(k>>1),c0+1+(k&1)]; }
+  if(rel<=39) return perim(absIdx(s,rel)); if(rel>=HOME) return [5,5];
+  const [r,c]=perim(SEAT[s].m), dr=Math.sign(5-r), dc=Math.sign(5-c), k2=rel-39; return [r+dr*k2,c+dc*k2]; }
+const SAFE=new Set(SEAT.map(s=>(s.m+1)%40));
+function buildBoard(){ const b=$('board'); let h='';
+  SEAT.forEach((s,i)=>{ const [r,c]=s.dep; h+=`<div class="depot" style="--sc:${s.c};left:calc(100%*${c}/11 + 4px);top:calc(100%*${r}/11 + 4px)"><span>${s.n.toUpperCase()} DEPOT</span></div>`; });
+  for(let i=0;i<40;i++){ const [r,c]=perim(i); const st=SEAT.find(s=>(s.m+1)%40===i); h+=`<div class="cell ${CORNERS.includes(i)?'ix':''} ${st?'safe':''}" style="${st?`--sc:${st.c};`:''}left:calc(100%*${c}/11);top:calc(100%*${r}/11)"></div>`; }
+  SEAT.forEach((s,si)=>{ for(let k=40;k<HOME;k++){ const [r,c]=cellOf(si,k); h+=`<div class="cell home" style="--sc:${s.c};left:calc(100%*${c}/11);top:calc(100%*${r}/11)"></div>`; } });
+  h+='<div class="term"></div><div id="toks"></div>'; b.innerHTML=h; }
+function renderToks(){ const groups={}; let h='';
+  players.forEach((p,pi)=>p.t.forEach((rel,k)=>{ const [r,c]=cellOf(p.s,rel,k); const key=rel<0?`d${pi}${k}`:`${r},${c}`; (groups[key]=groups[key]||[]).push([pi,k,r,c]); }));
+  for(const g of Object.values(groups)) g.forEach(([pi,k,r,c],j)=>{ const off=g.length>1?(j-(g.length-1)/2)*0.22:0; const can=legal.includes(k)&&pi===turn&&!players[pi].bot;
+    h+=`<button class="tok ${can?'can':''}" data-k="${k}" ${can?'':'tabindex="-1"'} style="--sc:${SEAT[players[pi].s].c};left:calc(100%*${c+off}/11);top:calc(100%*${r+off*0.4}/11)" aria-label="${players[pi].name} train ${k+1}"></button>`; });
+  $('toks').innerHTML=h; }
+function renderSeats(){ $('seats').innerHTML=SEAT.map((s,si)=>{ const p=players.find(q=>q.s===si); return `<div class="seat ${p?'':'off'} ${p&&players[turn]===p&&!over?'on':''}" style="--sc:${s.c}"><b><i></i>${p?G9.esc(p.name):s.n}</b><small>${p?`${p.t.filter(t=>t>=HOME).length}/4 home`:'empty'}</small></div>`; }).join(''); }
+function renderDie(v){ const pips={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]}[v]||[];
+  const d=$('die'); d.innerHTML=Array.from({length:9},(_,i)=>`<i class="${pips.includes(i)?'v':''}"></i>`).join('');
+  d.style.setProperty('--sc',players[turn]?SEAT[players[turn].s].c:'#14163a'); }
+function render(){ renderSeats(); renderToks(); const p=players[turn]; const can=!over&&!busy&&p&&!p.bot&&!roll;
+  $('die').disabled=!can; $('die').classList.toggle('go',can); }
+function status(t){ $('status').textContent=t; }
+function start(lv,md){ level=lv; mode=md; const seats={b1:[0,2],b3:[0,1,2,3],p2:[0,2],p4:[0,1,2,3]}[md], bots=md[0]==='b';
+  players=seats.map((s,i)=>({s,name:bots?(i?BOTN[i-1]:'You'):SEAT[s].n,bot:bots&&i>0,t:[-1,-1,-1,-1]}));
+  turn=0; over=false; busy=false; roll=0; sixes=0; legal=[]; buildBoard(); renderDie(1); render(); beginTurn(); }
+const who=p=>players.length&&players.filter(q=>!q.bot).length===1&&!p.bot?'You':p.name;
+function beginTurn(){ roll=0; legal=[]; const p=players[turn]; busy=!!p.bot; renderDie(1); render();
+  if(p.bot){ busy=true; render(); status(`${p.name} is rolling…`); setTimeout(doRoll,650); }
+  else status(players.filter(q=>!q.bot).length===1?'Your turn: tap the dice':`${p.name}'s turn: tap the dice`); }
+function legalMoves(p,d){ return p.t.map((rel,k)=>({rel,k})).filter(({rel})=>rel<0?d===6:rel<HOME&&rel+d<=HOME).map(o=>o.k); }
+function doRoll(){ const p=players[turn]; roll=1+Math.floor(Math.random()*6); const d=$('die'); d.classList.remove('roll'); void d.offsetWidth; d.classList.add('roll'); renderDie(roll); G9.vibrate(10);
+  if(roll===6){ sixes++; if(sixes===3){ status(`Three 6s in a row. ${who(p)} ${who(p)==='You'?'lose':'loses'} the turn`); sixes=0; busy=true; render(); return setTimeout(endTurn,1000); } } else sixes=0;
+  legal=legalMoves(p,roll);
+  if(!legal.length){ status(`${who(p)} rolled ${roll}. No train can move`); busy=true; render(); return setTimeout(()=>{ roll===6?beginTurn():endTurn(); },900); }
+  if(p.bot){ render(); setTimeout(()=>move(botPick(p)),550); return; }
+  busy=false; render();
+  if(legal.length===1||new Set(legal.map(k=>p.t[k])).size===1){ status(`You rolled ${roll}`); busy=true; setTimeout(()=>move(legal[0]),400); }
+  else status(`Rolled ${roll}. Tap a glowing train`); }
+function threatsAt(pi,absCell){ let n=0; players.forEach((q,qi)=>{ if(qi===pi) return; q.t.forEach(rel=>{ if(rel<0||rel>39) return; const a=absIdx(q.s,rel), dist=(absCell-a+40)%40; if(dist>=1&&dist<=6&&rel+dist<=39) n++; }); }); return n; }
+function outcome(pi,k,d){ const p=players[pi]; let rel=p.t[k], jump=false; rel=rel<0?0:rel+d;
+  if(rel<=39&&CORNERS.includes(absIdx(p.s,rel))&&rel+10<=39){ rel+=10; jump=true; }
+  const a=absIdx(p.s,rel); let caps=[];
+  if(a!=null&&!SAFE.has(a)) players.forEach((q,qi)=>{ if(qi!==pi) q.t.forEach((r2,k2)=>{ if(r2>=0&&r2<=39&&absIdx(q.s,r2)===a) caps.push([qi,k2,r2]); }); });
+  return {rel,jump,caps,a}; }
+function botPick(p){ const pi=turn; if(level==='Easy') return G9.pick(legal);
+  let best=-1e9,bk=legal[0];
+  for(const k of legal){ const o=outcome(pi,k,roll), from=p.t[k]; const H=level==='Hard'; let s=0;
+    s+=o.caps.reduce((a,c)=>a+(H?50+c[2]*.8:40),0);
+    if(o.rel>=HOME) s+=H?45:30; if(from<0) s+=H?32:25; if(o.jump) s+=H?18:10;
+    const safe=o.rel>39||SAFE.has(o.a); if(safe) s+=H?12:5;
+    if(!safe&&o.a!=null) s-=threatsAt(pi,o.a)*(H?14:4);
+    if(H&&from>=0&&from<=39&&!SAFE.has(absIdx(p.s,from))) s+=threatsAt(pi,absIdx(p.s,from))*9;
+    s+=o.rel*(H?.15:.05)+Math.random()*(H?2:6); if(s>best){ best=s; bk=k; } }
+  return bk; }
+function move(k){ const pi=turn, p=players[pi]; busy=true; const o=outcome(pi,k,roll); legal=[]; render();
+  const from=p.t[k], path=[]; if(from<0) path.push(0); else for(let r=from+1;r<=Math.min(from+roll,HOME);r++) path.push(r);
+  let i=0; const step=()=>{ p.t[k]=path[i++]; renderToks(); G9.vibrate(4); if(i<path.length) return setTimeout(step,110); after(); };
+  const after=()=>{ let extra=roll===6, note='';
+    if(o.jump){ p.t[k]=o.rel; renderToks(); note='Interchange! Jumped 10 stops. '; }
+    if(o.caps.length){ o.caps.forEach(([qi,k2])=>players[qi].t[k2]=-1); extra=true; note+=`${who(p)} sent ${o.caps.map(c=>players[c[0]].name).join(' & ')} back to depot! `; G9.vibrate([20,30,20]); }
+    if(p.t[k]>=HOME){ extra=true; note+='Train reached the terminus! '; }
+    render(); status(note||`${who(p)} moved ${roll}`);
+    if(p.t.every(t=>t>=HOME)) return setTimeout(()=>finish(pi),700);
+    setTimeout(()=>{ if(extra){ if(note) status(note+(who(p)==='You'?'Roll again':'Extra roll')); setTimeout(beginTurn,note?500:0); } else endTurn(); },o.jump?700:420); };
+  setTimeout(step,o.jump?0:0); }
+function endTurn(){ sixes=0; turn=(turn+1)%players.length; beginTurn(); }
+function finish(pi){ over=true; busy=false; render(); const p=players[pi], solo=players.filter(q=>!q.bot).length===1;
+  const t=solo?(p.bot?`${p.name} wins`:'You win!'):`${p.name} wins!`; status(t);
+  if(solo&&!p.bot){ const w=G9.load('chaupar-wins',{}); w[level]=(w[level]||0)+1; G9.save('chaupar-wins',w); }
+  const ranks=players.map(q=>[q.name,`${q.t.filter(x=>x>=HOME).length}/4`]);
+  setTimeout(()=>G9.over({tag:'Terminus reached',title:t,sub:solo?`${level} bots`:`${players.length} players on one phone`,stats:ranks.slice(0,4),retry:'Play again',onRetry:()=>start(level,mode),onMenu:menu}),800); }
+$('die').onclick=()=>{ if(over||busy||roll||players[turn].bot) return; busy=true; render(); doRoll(); };
+$('board').addEventListener('click',e=>{ const t=e.target.closest('.tok.can'); if(!t||over||busy) return; const k=+t.dataset.k; if(legal.includes(k)) move(k); });
+function menu(){ G9.menu({id:'chaupar',title:'Chaupar Express',code:'B-01',hook:'Race all 4 trains around the loop to the terminus.',
+  how:'Roll a <b>6</b> to bring a train out of the depot. Go once round the loop, then up your coloured line to the centre. Land exactly on a <b>◎ interchange</b> to jump 10 stops. Land on a rival to send it back. 6s, hits and arrivals give an extra roll.',
+  modes:[{v:'b3',t:'vs 3 bots'},{v:'b1',t:'vs 1 bot'},{v:'p2',t:'2 players'},{v:'p4',t:'4 players'}],levels:['Easy','Normal','Hard'],
+  best:lv=>{ const w=G9.load('chaupar-wins',{})[lv]; return w?`Wins vs ${lv} bots: ${w}`:''; },onStart:(lv,md)=>start(lv,md)}); }
+players=[{s:0,name:'You',bot:false,t:[-1,-1,-1,-1]}]; buildBoard(); renderDie(6); render(); menu();
+</script>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patang Wars · Gametro9</title>
+<meta name="theme-color" content="#14163a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--ink:#14163a;--g9-dim:#a4a9d6}
+html,body{height:100%;margin:0}
+body{background:#14163a;color:#fff;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow:hidden}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 max(14px,env(safe-area-inset-right,0px)) 6px max(14px,env(safe-area-inset-left,0px));font-weight:800;font-size:14.5px}
+.hud span{background:rgba(255,255,255,.1);border-radius:99px;padding:4px 12px;white-space:nowrap}
+.hud em{font-style:normal;color:#ffc929}
+.wrap{position:relative;flex:1;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+</style>
+</head>
+<body>
+<div class="hud"><span id="h1">Cut 0</span><span id="h2">Round 1</span><span id="h3">Wind →</span></div>
+<div class="wrap"><canvas id="cv" aria-label="Kite sky"></canvas></div>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'A-04',line:'Action & Battle line',color:'#13a05c'});
+const $=id=>document.getElementById(id), cv=$('cv');
+const COLS=['#f0412b','#2f5bff','#13a05c','#e89a00','#ff5fa2'];
+const LV={Easy:{sp:300,f:3.2,amp:70,sh:.9,think:3.2},Normal:{sp:490,f:5.3,amp:90,sh:1.12,think:2},Hard:{sp:500,f:5.4,amp:91,sh:1.12,think:1.7}};
+let mode='cpu', level='Normal', K=[], fights={}, falling=[], round=1, lives=3, cuts=0, sharp=1, wind=0, wins=[0,0], phase='idle', last=0, t=0, banner=null, sparks=[], ptr={};
+let S=null; S=G9.canvas(cv,()=>{ if(S&&phase==='idle') draw(); });
+function hud(){ if(mode==='cpu'){ $('h1').innerHTML=`Cut <em>${cuts}</em> · ${'♥'.repeat(lives)}${'♡'.repeat(3-lives)}`; $('h2').textContent=`Round ${round}`; }
+  else { $('h1').innerHTML=`P1 <em>${wins[0]}</em> – <em>${wins[1]}</em> P2`; $('h2').textContent='First to 3'; }
+  $('h3').textContent=`Wind ${wind>8?'→':wind<-8?'←':'·'}${Math.abs(wind)>40?(wind>0?'→':'←'):''}`; }
+function kite(i,ax,col,name,bot){ const {w,h}=S; return {i,ax,ay:h-48-((i*37)%30),x:ax+G9.rand(-40,40),y:h*.38+G9.rand(-40,40),vx:0,vy:0,col,name,bot,alive:true,ctrl:null,tgt:null,think:0,side:1,ph:Math.random()*6,sh:bot?LV[level].sh:sharp}; }
+function newRound(){ const {w}=S; t=0; wind=G9.rand(-60,60); K=[]; fights={}; sparks=[];
+  if(mode==='cpu'){ K.push(kite(0,w*.18,COLS[0],'You',false)); [w*.45,w*.68,w*.88].forEach((x,j)=>K.push(kite(j+1,x,COLS[j+1],['Meera','Kabir','Zoya'][j],true))); }
+  else { K.push(kite(0,w*.2,COLS[0],'P1',false)); K.push(kite(1,w*.8,COLS[1],'P2',false)); }
+  hud(); phase='play'; banner={t:performance.now(),text:mode==='cpu'?`ROUND ${round}`:'FIGHT!'}; }
+function segX(a,b,c,d){ const r=(b[0]-a[0])*(d[1]-c[1])-(b[1]-a[1])*(d[0]-c[0]); if(Math.abs(r)<1e-6) return null;
+  const u=((c[0]-a[0])*(d[1]-c[1])-(c[1]-a[1])*(d[0]-c[0]))/r, v=((c[0]-a[0])*(b[1]-a[1])-(c[1]-a[1])*(b[0]-a[0]))/r;
+  return u>.08&&u<.98&&v>.08&&v<.98?[a[0]+u*(b[0]-a[0]),a[1]+u*(b[1]-a[1])]:null; }
+function botThink(k){ const lv=LV[level]; k.think-=1/60; if(k.think<=0||!k.tgt||!k.tgt.alive){ k.think=lv.think*G9.rand(.7,1.3);
+    const foes=K.filter(o=>o!==k&&o.alive); if(!foes.length){ k.tgt=null; return; }
+    const you=foes.find(o=>!o.bot); k.tgt=level==='Hard'&&you&&Math.random()<.5?you:level==='Easy'?G9.pick(foes):foes.sort((a,b)=>Math.hypot(a.x-k.x,a.y-k.y)-Math.hypot(b.x-k.x,b.y-k.y))[0]; k.side=Math.random()<.5?1:-1; } }
+function update(dt){ const {w,h}=S; t+=dt; const L=h*.92;
+  for(const k of K){ if(!k.alive) continue; let tx=null,ty=null,maxS=520;
+    if(k.bot){ botThink(k); const lv=LV[level]; maxS=lv.sp; const e=k.tgt; if(e){ const f=.74+.1*Math.sin(t*.7+k.ph); const mx=e.ax+(e.x-e.ax)*f, my=e.ay+(e.y-e.ay)*f, dx=e.x-e.ax, dy=e.y-e.ay, l=Math.hypot(dx,dy)||1, nx=-dy/l, ny=dx/l, osc=Math.sin(t*lv.f+k.ph);
+        tx=mx+nx*lv.amp*osc*k.side; ty=Math.min(h*.58,my+ny*lv.amp*osc*k.side-20); } else { tx=k.ax; ty=h*.3; } }
+    else if(k.ctrl){ tx=k.ctrl.tx; ty=k.ctrl.ty; }
+    if(tx!=null){ let dvx=(tx-k.x)*7, dvy=(ty-k.y)*7; const ds=Math.hypot(dvx,dvy); if(ds>maxS){ dvx*=maxS/ds; dvy*=maxS/ds; } const a=Math.min(1,dt*9); k.vx+=(dvx-k.vx)*a; k.vy+=(dvy-k.vy)*a; }
+    else { k.vx+=(wind-k.vx)*dt*1.4; k.vy+=(26-k.vy)*dt; }
+    k.x+=(k.vx+wind*.25)*dt; k.y+=k.vy*dt;
+    const dx=k.x-k.ax, dy=k.y-k.ay, l=Math.hypot(dx,dy); if(l>L){ k.x=k.ax+dx/l*L; k.y=k.ay+dy/l*L; }
+    k.x=G9.clamp(k.x,14,w-14); k.y=G9.clamp(k.y,18,h*.66); }
+  // string fights
+  for(let i=0;i<K.length;i++) for(let j=i+1;j<K.length;j++){ const a=K[i], b=K[j], key=i+'-'+j; if(!a.alive||!b.alive){ delete fights[key]; continue; }
+    const p=segX([a.ax,a.ay],[a.x,a.y],[b.ax,b.ay],[b.x,b.y]);
+    if(p){ const f=fights[key]||(fights[key]={v:0,p}); f.p=p; f.on=true; const pa=Math.hypot(a.vx,a.vy)*a.sh, pb=Math.hypot(b.vx,b.vy)*b.sh; f.v+=(pa-pb)*dt; f.age=(f.age||0)+dt; if(f.age>5) f.v+=Math.sign(f.v||Math.random()-.5)*40*dt;
+      if(Math.random()<.5) sparks.push({x:p[0],y:p[1],vx:G9.rand(-60,60),vy:G9.rand(-80,10),l:.4});
+      if(Math.abs(f.v)>110){ cut(f.v>0?b:a,f.v>0?a:b); delete fights[key]; } }
+    else if(fights[key]){ fights[key].v*=Math.pow(.25,dt); fights[key].on=false; if(Math.abs(fights[key].v)<2) delete fights[key]; } }
+  sparks.forEach(s=>{ s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=200*dt; s.l-=dt; }); sparks=sparks.filter(s=>s.l>0);
+  falling.forEach(f=>{ f.x+=(wind*1.2+f.vx)*dt; f.y+=f.vy*dt; f.vy=Math.min(60,f.vy+15*dt); f.r+=dt*2.2; }); falling=falling.filter(f=>f.y<h+40&&f.x>-60&&f.x<w+60); }
+function cut(loser,winner){ loser.alive=false; falling.push({x:loser.x,y:loser.y,vx:G9.rand(-20,20),vy:-30,r:0,col:loser.col}); G9.vibrate(loser.bot?20:[40,40,40]);
+  banner={t:performance.now(),text:'KAI PO CHE!',sub:`${winner.name} cut ${loser.name}`}; if(!winner.bot&&mode==='cpu') cuts++;
+  hud(); checkEnd(loser); }
+function checkEnd(loser){ if(phase!=='play') return;
+  if(mode==='two'){ wins[loser.i===0?1:0]++; hud(); phase='between'; if(Math.max(...wins)>=3) return setTimeout(finish,1300); return setTimeout(newRound,1600); }
+  const me=K[0]; if(!me.alive){ lives--; hud(); phase='between'; if(lives<=0) return setTimeout(finish,1300); return setTimeout(()=>{ banner={t:performance.now(),text:'NEW KITE',sub:'Your string was cut'}; setTimeout(newRound,1000); },900); }
+  if(K.every(k=>!k.bot||!k.alive)){ phase='between'; round++; sharp=Math.min(1.3,sharp+.05); setTimeout(()=>{ banner={t:performance.now(),text:'SKY CLEARED',sub:`Sharper manja: ${Math.round(sharp*100)}%`}; setTimeout(newRound,1300); },700); } }
+function drawKite(ctx,x,y,col,rot,alpha){ ctx.save(); ctx.translate(x,y); ctx.rotate(rot); ctx.globalAlpha=alpha;
+  ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(16,0); ctx.lineTo(0,22); ctx.lineTo(-16,0); ctx.closePath(); ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle='#14163a'; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,-20); ctx.lineTo(0,22); ctx.moveTo(-16,0); ctx.quadraticCurveTo(0,-8,16,0); ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0,22); ctx.quadraticCurveTo(-6,32,2,40); ctx.quadraticCurveTo(8,48,0,56); ctx.strokeStyle=col; ctx.lineWidth=3; ctx.stroke(); ctx.restore(); }
+function draw(){ if(!S||!S.w) return; const {ctx,w,h}=S;
+  const g=ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'#3b4bb8'); g.addColorStop(.55,'#f08a5d'); g.addColorStop(1,'#ffc46b'); ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+  ctx.fillStyle='rgba(255,236,170,.9)'; ctx.beginPath(); ctx.arc(w*.78,h*.62,38,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.35)'; for(let i=0;i<4;i++){ const cx=((i*w*.37+t*(wind*.3+8))%(w+160))-80, cy=h*(.12+i*.1); ctx.beginPath(); ctx.ellipse(cx,cy,50,12,0,0,Math.PI*2); ctx.ellipse(cx+28,cy-6,30,11,0,0,Math.PI*2); ctx.fill(); }
+  ctx.fillStyle='#14163a'; ctx.beginPath(); ctx.moveTo(0,h); let x=0; const roofs=[.07,.11,.05,.09,.06,.1,.08]; let i=0; while(x<w){ const rw=w/6.5, rh=h*roofs[i++%roofs.length]+30; ctx.lineTo(x,h-rh); ctx.lineTo(x+rw,h-rh); x+=rw; } ctx.lineTo(w,h); ctx.closePath(); ctx.fill();
+  for(const f of falling) drawKite(ctx,f.x,f.y,f.col,f.r,.7);
+  for(const k of K){ if(!k.alive) continue; ctx.strokeStyle=k.bot?'rgba(20,22,58,.75)':'#fff'; ctx.lineWidth=k.bot?1.2:1.8; ctx.beginPath(); ctx.moveTo(k.ax,k.ay); ctx.lineTo(k.x,k.y+18); ctx.stroke();
+    ctx.fillStyle=k.col; ctx.beginPath(); ctx.arc(k.ax,k.ay-6,7,0,Math.PI*2); ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#ffc46b'; ctx.stroke(); }
+  for(const k of K) if(k.alive){ drawKite(ctx,k.x,k.y,k.col,Math.atan2(k.vx,300)*.6,1); if(!k.bot){ ctx.fillStyle='#fff'; ctx.font="800 11px 'Figtree',sans-serif"; ctx.textAlign='center'; ctx.fillText(k.name,k.x,k.y-26); } }
+  for(const s of sparks){ ctx.fillStyle=`rgba(255,240,120,${s.l*2.4})`; ctx.fillRect(s.x-1.5,s.y-1.5,3,3); }
+  for(const [key,f] of Object.entries(fights)){ if(!f.on) continue; const [i,j]=key.split('-').map(Number), r=G9.clamp(f.v/110,-1,1), bx=f.p[0]-30, by=f.p[1]-24;
+    ctx.fillStyle='#14163a'; ctx.fillRect(bx-2,by-2,64,10); ctx.fillStyle=K[j].col; ctx.fillRect(bx,by,60,6); ctx.fillStyle=K[i].col; ctx.fillRect(bx,by,30+30*r,6); }
+  if(banner){ const k=(performance.now()-banner.t)/1300; if(k<1){ ctx.save(); ctx.globalAlpha=k>.75?(1-k)/.25:1; ctx.textAlign='center'; ctx.font="800 40px 'Bricolage Grotesque','Arial Black',sans-serif"; ctx.lineWidth=7; ctx.strokeStyle='#14163a'; ctx.strokeText(banner.text,w/2,h*.4); ctx.fillStyle='#ffc929'; ctx.fillText(banner.text,w/2,h*.4);
+      if(banner.sub){ ctx.font="800 16px 'Figtree',sans-serif"; ctx.lineWidth=5; ctx.strokeText(banner.sub,w/2,h*.4+28); ctx.fillStyle='#fff'; ctx.fillText(banner.sub,w/2,h*.4+28); } ctx.restore(); } else banner=null; }
+  if(phase==='play'&&t<4&&mode==='cpu'){ ctx.fillStyle='rgba(20,22,58,.55)'; ctx.font="800 14px 'Figtree',sans-serif"; ctx.textAlign='center'; ctx.fillText('Hold and drag to fly. Saw fast across their string!',w/2,h-14); }
+  if(phase==='play'&&t<4&&mode==='two'){ ctx.fillStyle='rgba(255,255,255,.8)'; ctx.font="800 13px 'Figtree',sans-serif"; ctx.textAlign='center'; ctx.fillText('P1: drag on left half',w*.25,h-14); ctx.fillText('P2: drag on right half',w*.75,h-14); } }
+function loop(now){ const dt=Math.min(.033,(now-last)/1000); last=now; if(phase==='play'||phase==='between') update(dt); draw(); requestAnimationFrame(loop); }
+const pos=e=>{ const r=cv.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; };
+cv.addEventListener('pointerdown',e=>{ if(phase!=='play'&&phase!=='between') return; cv.setPointerCapture(e.pointerId); const [x,y]=pos(e);
+  let k; if(mode==='cpu') k=K[0]; else k=x<S.w/2?K[0]:K[1]; if(!k||!k.alive) return;
+  ptr[e.pointerId]={k,lx:x,ly:y}; k.ctrl=mode==='cpu'?{tx:x,ty:y-40}:{tx:k.x,ty:k.y}; });
+cv.addEventListener('pointermove',e=>{ const p=ptr[e.pointerId]; if(!p) return; const [x,y]=pos(e), k=p.k; if(!k.ctrl) return;
+  if(mode==='cpu'){ k.ctrl.tx=x; k.ctrl.ty=y-40; } else { k.ctrl.tx=G9.clamp(k.ctrl.tx+(x-p.lx)*1.9,0,S.w); k.ctrl.ty=G9.clamp(k.ctrl.ty+(y-p.ly)*1.9,0,S.h); } p.lx=x; p.ly=y; });
+const up=e=>{ const p=ptr[e.pointerId]; if(p){ p.k.ctrl=null; delete ptr[e.pointerId]; } }; cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',up);
+function finish(){ phase='idle'; const nA=mode==='cpu'?'Kites cut':'P1', title=mode==='cpu'?`You cut ${cuts} kite${cuts===1?'':'s'}`:`${wins[0]>wins[1]?'Player 1':'Player 2'} rules the sky!`;
+  if(mode==='cpu'){ const b=G9.load('patang-best',{}); if(cuts>(b[level]||0)){ b[level]=cuts; G9.save('patang-best',b); } }
+  G9.over({tag:'Sky closed',title,sub:mode==='cpu'?`${level} · reached round ${round}`:'2 players on one phone',stats:mode==='cpu'?[['Kites cut',cuts],['Best on '+level,G9.load('patang-best',{})[level]||0]]:[['Player 1',wins[0]],['Player 2',wins[1]]],retry:'Fly again',onRetry:()=>start(level,mode),onMenu:menu}); }
+function start(lv,md){ level=lv; mode=md; round=1; lives=3; cuts=0; sharp=1; wins=[0,0]; falling=[]; t=0; newRound(); }
+function menu(){ phase='idle'; G9.menu({id:'patang',title:'Patang Wars',code:'A-04',hook:'Cross their string. Saw faster. Cut them down.',
+  how:'Hold and drag to fly your kite. When your string <b>crosses</b> a rival string, a tug-of-war starts: <b>move fast</b> to saw through. The faster kite wins and the other is cut. Clear the sky to sharpen your manja. You have 3 kites.',
+  modes:[{v:'cpu',t:'vs 3 bots'},{v:'two',t:'2 players'}],levels:['Easy','Normal','Hard'],
+  best:lv=>{ const b=G9.load('patang-best',{})[lv]; return b?`Best on ${lv}: ${b} kites cut`:''; },onStart:(lv,md)=>start(lv,md)}); }
+last=performance.now(); requestAnimationFrame(loop); menu();
+</script>
+</body>
+</html>

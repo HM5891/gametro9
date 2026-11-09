@@ -33,6 +33,8 @@ window.G9_LINES = [
   { id: 'puzzle',   name: 'Puzzle',           code: 'P', color: '#2f5bff' },
   { id: 'action',   name: 'Action & Battle',  code: 'A', color: '#13a05c' },
   { id: 'strategy', name: 'Strategy',         code: 'S', color: '#e89a00' },
+  { id: 'board',    name: 'Board & Cards',    code: 'B', color: '#8a3ffc' },
+  { id: 'gully',    name: 'Gully Sports',     code: 'G', color: '#0aa6b8' },
 ];
 
 window.G9_GAMES = [
@@ -84,4 +86,40 @@ window.G9_GAMES = [
     modes: ['single'], levels: ['Normal'],
     about: 'Rule one tile on a small map against three computer kingdoms. Claim land, recruit troops, raid neighbours or pay for a truce. Each turn is one day.',
     buys: ['Buildings and banners', 'Defence walls', 'Map expansion'] },
+
+  { id: 'chaupar', name: 'Chaupar Express', line: 'board', genre: 'Board race', price: 0, status: 'open', play: 'play/chaupar-express/',
+    tagline: 'Race 4 trains round the loop. Jump at interchanges.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'A board race on a metro loop. Roll a 6 to leave the depot, land on interchanges to jump 10 stops and send rival trains back. Play 1 or 3 bots, or 2 to 4 friends on one phone.',
+    buys: ['Train skins', 'Board themes', 'Lucky dice designs'] },
+
+  { id: 'patta', name: 'Patta Junction', line: 'board', genre: 'Card game', price: 0, status: 'open', play: 'play/patta-junction/',
+    tagline: 'Match the line colour. Empty your hand first.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'A fast card-shedding game with metro cards: Express skips, U-turn reverses, Rush hour makes them draw 2 and Platform swap trades whole hands. Play bots, or pass the phone between 2 to 4 friends.',
+    buys: ['Card backs', 'Table themes', 'Emotes'] },
+
+  { id: 'striker', name: 'Striker Club', line: 'board', genre: 'Flick board game', price: 0, status: 'open', play: 'play/striker-club/',
+    tagline: 'Flick, rebound, pocket. Your club, your rules.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'A carrom-style flick game with real physics. Slide the striker, pull back and release. Your coins score 1, the pink Club coin scores 3. Play a bot or a friend on one phone.',
+    buys: ['Striker designs', 'Board finishes', 'Coin sets'] },
+
+  { id: 'gully', name: 'Gully Over', line: 'gully', genre: 'Street cricket', price: 0, status: 'open', play: 'play/gully-over/',
+    tagline: 'Two overs. Three wickets. Do not break the window.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'Street cricket. Tap to time your shot and pick a side to beat the fielders, but a six into the window side is out. Bat, then bowl to defend. Or 2 friends take turns batting.',
+    buys: ['Bat designs', 'Gully grounds', 'Super over tickets'] },
+
+  { id: 'raid', name: 'Raid Line', line: 'gully', genre: 'Kabaddi action', price: 0, status: 'open', play: 'play/raid-line/',
+    tagline: 'One breath. Tag them. Get back over the line.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'Kabaddi-style raids. Dash in, tag defenders and get back across the middle line before you run out of breath. Then defend as captain. Play a bot team or take turns with a friend.',
+    buys: ['Team kits', 'Courts', 'Raider moves'] },
+
+  { id: 'patang', name: 'Patang Wars', line: 'action', genre: 'Kite fighting', price: 0, status: 'open', play: 'play/patang-wars/',
+    tagline: 'Cross their string. Saw faster. Cut them down.',
+    modes: ['single', 'multi'], levels: ['Easy', 'Normal', 'Hard'],
+    about: 'Kite fighting over the rooftops. Cross a rival string and saw faster to cut their kite. Clear the sky against 3 bots to sharpen your manja, or duel a friend on one phone.',
+    buys: ['Kite designs', 'Manja upgrades', 'Rooftop themes'] },
 ];

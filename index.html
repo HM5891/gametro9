@@ -701,7 +701,7 @@ function openPicker(kind){
   else if(kind==='mode'){ title='How do you want to play?'; cur=mode;
     items=[{...all,t:'Any',sub:'All games',mk:'<span class="mk ico">'+ICON.multi+'</span>'},
       {v:'single',t:'Single player',sub:'Play on your own',n:GAMES.filter(g=>modesOf(g).includes('single')).length,mk:modeMark('single')},
-      {v:'multi',t:'Multiplayer',sub:'Play with a friend',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
+      {v:'multi',t:'Multiplayer',sub:'Friends on one phone',n:GAMES.filter(g=>modesOf(g).includes('multi')).length,mk:modeMark('multi')}]; }
   else { title='Pick a level'; cur=lvl;
     const SUB={Easy:'Relaxed, good for beginners',Normal:'The standard challenge',Hard:'For experienced players',Expert:'Only for the best'};
     items=[{...all,t:'Any level',sub:'All games',mk:'<span class="mk ico"><svg viewBox="0 0 16 16"><path d="M3 13V9M8 13V5M13 13V2" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></span>'}]

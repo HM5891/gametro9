@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raid Line · Gametro9</title>
+<meta name="theme-color" content="#14163a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--ink:#14163a;--g9-dim:#565a7e}
+html,body{height:100%;margin:0}
+body{background:#f4ece0;color:var(--ink);font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow:hidden}
+main{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;width:100%;max-width:420px}
+.tm{background:#fff;border:2.5px solid var(--ink);border-radius:14px;padding:6px 10px}
+.tm:last-child{text-align:right}
+.tm b{display:block;font-size:14px}.tm .pt{font:800 26px 'Bricolage Grotesque',sans-serif;line-height:1}
+.dots{display:flex;gap:3px;margin-top:3px}.tm:last-child .dots{justify-content:flex-end}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--tc);border:1.5px solid var(--ink)}.dots i.out{background:transparent;opacity:.4}
+.mid{text-align:center;font:700 11px 'Overpass Mono',monospace;letter-spacing:.08em;color:#565a7e;text-transform:uppercase}
+.mid b{display:block;font:800 18px 'Bricolage Grotesque',sans-serif;color:var(--ink);letter-spacing:0}
+.status{font-weight:800;font-size:15px;min-height:20px;text-align:center}
+.wrap{position:relative;flex:1;min-height:0;width:min(100%,420px)}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div class="tm" id="tA" style="--tc:#0aa6b8"><b id="nA">You</b><span class="pt" id="pA">0</span><div class="dots" id="dA"></div></div><div class="mid">Raid<b id="rd">1/10</b></div><div class="tm" id="tB" style="--tc:#f0412b"><b id="nB">Bot team</b><span class="pt" id="pB">0</span><div class="dots" id="dB"></div></div></div>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="wrap"><canvas id="cv" aria-label="Kabaddi court"></canvas></div>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'G-02',line:'Gully Sports line',color:'#0aa6b8'});
+const $=id=>document.getElementById(id), cv=$('cv');
+const W=600,H=900,MID=450,BAULK=340,BONUS=250,RR=20,DR=18,TAG=38,HOLD=42,BREATH=20,RAIDS=10;
+let waitT=0, mode='cpu', level='Normal', pts=[0,0], alive=[5,5], raidNo=0, phase='idle', R=null, D=[], flip=false, raidT=0, tags=0, bonus=false, crossed=false, ctrlTeam=0, joy=null, last=0, raf=0, banner=null;
+let S=null; S=G9.canvas(cv,()=>{ if(S) draw(); });
+const L={Easy:{d:110,r:165,agg:.3},Normal:{d:148,r:192,agg:.6},Hard:{d:186,r:216,agg:.95}};
+const TEAM=['#0aa6b8','#f0412b'];
+function hud(){ $('pA').textContent=pts[0]; $('pB').textContent=pts[1]; $('rd').textContent=`${Math.min(raidNo+1,RAIDS)}/${RAIDS}`;
+  ['A','B'].forEach((k,i)=>$('d'+k).innerHTML=Array.from({length:5},(_,j)=>`<i class="${j<alive[i]?'':'out'}"></i>`).join('')); }
+function status(t){ $('status').textContent=t; }
+function slots(n){ const a=[]; for(let i=0;i<n;i++){ const t=n===1?.5:i/(n-1); a.push([110+t*380,200+Math.sin(t*Math.PI)*-40+40]); } return a; }
+/* attack team = raidNo%2 (0 = team A raids first). Defenders always live in the top half in sim space. */
+function beginRaid(){ if(raidNo>=RAIDS) return finish(); const atk=raidNo%2, def=1-atk; hud();
+  if(mode==='two'){ alive=[5,5]; }
+  const humanRaids=mode==='two'||atk===0; ctrlTeam=humanRaids?'raider':'captain'; flip=!humanRaids;
+  R={x:300,y:540,vx:0,vy:0,team:atk,bot:!humanRaids,goal:null,tagged:0,st:'in'};
+  D=slots(alive[def]).map(([x,y],i)=>({x,y,hx:x,hy:y,vx:0,vy:0,tag:false,team:def,cap:false}));
+  if(!humanRaids&&D.length) D[Math.floor(D.length/2)].cap=true;
+  raidT=0; waitT=0; tags=0; bonus=false; crossed=false; joy=null; phase='ready';
+  const who=mode==='two'?(atk?'Player 2':'Player 1'):(atk?'Bot raider':'You');
+  status(humanRaids?`${who}: drag to raid. Tag and get back over the middle line`:'Defend! Drag your captain (ringed). 2 defenders touching the raider = tackle');
+  banner={t:performance.now(),text:humanRaids?`${who.toUpperCase()} RAID`:'DEFEND'}; setTimeout(()=>{ if(phase==='ready') phase='play'; },900); }
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function moveTo(o,tx,ty,sp,dt){ const dx=tx-o.x, dy=ty-o.y, l=Math.hypot(dx,dy); if(l<2) return; const k=Math.min(1,l/(sp*dt)); o.x+=dx/l*sp*dt*Math.min(1,k); o.y+=dy/l*sp*dt*Math.min(1,k); }
+function update(dt){ const lv=L[level], inT=R.y<MID; if(inT) raidT+=dt; if(R.y<BAULK) crossed=true; if(R.y<BONUS&&D.length>=4) bonus=true;
+  // raider
+  if(R.bot){ botRaider(dt); } else if(joy){ const dx=joy.x-joy.ox, dy=joy.y-joy.oy, l=Math.hypot(dx,dy); if(l>6){ const s=lv.r*1.05*Math.min(1,l/45); R.x+=dx/l*s*dt*(flip?1:1); R.y+=dy/l*s*dt*(flip?-1:1); } }
+  R.x=G9.clamp(R.x,RR,W-RR); R.y=G9.clamp(R.y,RR,H-RR);
+  // defenders
+  const near=D.filter(d=>dist(d,R)<120).length;
+  D.forEach((d,i)=>{ let sp=lv.d, tx=d.hx, ty=d.hy;
+    if(d.cap&&joy){ const dx=joy.x-joy.ox, dy=joy.y-joy.oy, l=Math.hypot(dx,dy); if(l>6){ const s=170*Math.min(1,l/45); d.x+=dx/l*s*dt; d.y+=-dy/l*s*dt; } d.x=G9.clamp(d.x,DR,W-DR); d.y=G9.clamp(d.y,DR,MID-DR); return; }
+    const cap=D.find(q=>q.cap); const teamAI=!!cap;
+    if(!inT||!crossed){ tx=d.hx+(R.x-300)*.3; ty=Math.min(d.hy,BAULK-55); }
+    else { const dR=dist(d,R); const rush=teamAI?(cap&&dist(cap,R)<75&&dR<220):(near>=2&&Math.random()<lv.agg*dt*6)||d.rush;
+      if(!teamAI&&near>=2&&dR<130) d.rush=true; if(dR>200) d.rush=false;
+      if(rush){ tx=R.x; ty=R.y; sp*=1.25; }
+      else if(dR<85){ const ax=d.x-R.x, ay=d.y-R.y, l=Math.hypot(ax,ay)||1; tx=d.x+ax/l*60; ty=d.y+ay/l*60; }
+      else { tx=R.x+(d.hx-300)*.55; ty=Math.min(R.y+(teamAI?40:75),MID-30); } }
+    moveTo(d,G9.clamp(tx,DR,W-DR),G9.clamp(ty,DR,MID-DR),sp,dt); });
+  // separation
+  for(let i=0;i<D.length;i++) for(let j=i+1;j<D.length;j++){ const a=D[i],b=D[j],dd=dist(a,b); if(dd<DR*2&&dd>0){ const p=(DR*2-dd)/2, nx=(b.x-a.x)/dd, ny=(b.y-a.y)/dd; a.x-=nx*p; a.y-=ny*p; b.x+=nx*p; b.y+=ny*p; } }
+  // tags and tackles
+  if(inT){ D.forEach(d=>{ if(!d.tag&&dist(d,R)<TAG){ d.tag=true; tags++; G9.vibrate(15); } });
+    const hold=D.filter(d=>dist(d,R)<HOLD).length; if(hold>=2) return endRaid('tackle');
+    if(raidT>BREATH) return endRaid('breath'); }
+  if(raidT>0&&R.y>MID+RR*.5) return endRaid('home');
+  if(raidT===0){ waitT+=dt; if(waitT>8) endRaid('home'); } }
+function botRaider(dt){ const lv=L[level], sp=lv.r*.95; const close=D.filter(d=>dist(d,R)<95);
+  const wantHome=raidT>BREATH-5||(tags>=({Easy:1,Normal:1,Hard:2}[level])&&crossed)||(close.length>=2&&crossed&&tags>0);
+  if(close.length>=2&&R.y<MID){ const cx=close.reduce((a,d)=>a+d.x,0)/close.length, cy=close.reduce((a,d)=>a+d.y,0)/close.length, ax=R.x-cx, ay=R.y-cy+40, l=Math.hypot(ax,ay)||1; R.x+=ax/l*sp*dt; R.y+=ay/l*sp*dt; return; }
+  if(wantHome){ moveTo(R,R.x,MID+60,sp,dt); return; }
+  if(!crossed){ if(R.lane==null){ let bx=300,bd=-1; for(let x=60;x<=540;x+=40){ const m=Math.min(...D.map(d=>Math.abs(d.x-x)),999); if(m>bd){ bd=m; bx=x; } } R.lane=bx; } moveTo(R,R.lane,BAULK-30,sp,dt); return; }
+  const free=D.filter(d=>!d.tag).sort((a,b)=>{ const iso=q=>D.filter(o=>o!==q&&dist(o,q)<90).length; return iso(a)-iso(b)||dist(a,R)-dist(b,R); })[0];
+  if(free){ moveTo(R,free.x,free.y,sp,dt); } else moveTo(R,R.x,MID+60,sp,dt); }
+function endRaid(why){ if(phase!=='play') return; phase='result'; const atk=R.team, def=1-atk; let msg='', big='';
+  if(why==='home'){ let p=crossed?tags+(bonus?1:0):0; if(!crossed){ msg=raidT===0?'Raid timed out. Go over the middle line!':'Empty raid: cross the baulk line to score'; big='EMPTY'; }
+    else { pts[atk]+=p; alive[def]=Math.max(0,alive[def]-tags); alive[atk]=Math.min(5,alive[atk]+tags); msg=p?`+${p} point${p>1?'s':''}${bonus?' (bonus line!)':''}`:'Safe return. No points'; big=p?`+${p}`:'SAFE'; } }
+  else { const sup=why==='tackle'&&alive[def]<=3&&mode!=='two'; if(mode!=='two'){ pts[def]+=1+(sup?1:0); alive[atk]=Math.max(0,alive[atk]-1); alive[def]=Math.min(5,alive[def]+1); } msg=why==='breath'?'Out of breath! Raider is out':sup?'SUPER TACKLE! +2':'Tackled! Raider is out'; big=why==='breath'?'OUT':'TACKLE'; G9.vibrate([30,40,30]); }
+  for(const t of [0,1]) if(alive[t]===0&&mode!=='two'){ pts[1-t]+=2; alive[t]=5; msg+=' · ALL OUT! +2'; }
+  banner={t:performance.now(),text:big}; status(msg); hud(); raidNo++; setTimeout(beginRaid,1500); }
+function draw(){ if(!S||!S.w) return; const {ctx,w,h}=S, k=Math.min(w/W,h/H), ox=(w-W*k)/2, oy=(h-H*k)/2;
+  const X=x=>ox+x*k, Y=y=>oy+(flip?H-y:y)*k; ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#14163a'; ctx.fillRect(ox-4,oy-4,W*k+8,H*k+8); ctx.fillStyle='#e7b97a'; ctx.fillRect(ox,oy,W*k,H*k);
+  ctx.fillStyle='rgba(255,255,255,.08)'; for(let i=0;i<12;i++) ctx.fillRect(ox,oy+i*H*k/12,W*k,H*k/24);
+  const line=(y,c,wd,dash)=>{ ctx.save(); ctx.strokeStyle=c; ctx.lineWidth=wd; if(dash) ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(X(0),Y(y)); ctx.lineTo(X(W),Y(y)); ctx.stroke(); ctx.restore(); };
+  line(MID,'#14163a',4); line(BAULK,'#fff',2.5); line(BONUS,'#fff',2,[8,8]); line(H-BAULK,'#fff',2.5); line(H-BONUS,'#fff',2,[8,8]);
+  ctx.fillStyle='rgba(20,22,58,.55)'; ctx.font=`700 ${Math.max(9,11*k*1.4)}px 'Overpass Mono',monospace`; ctx.textAlign='left';
+  ctx.fillText('BAULK',X(8),Y(BAULK)+(flip?-5:14)); ctx.fillText('BONUS',X(8),Y(BONUS)+(flip?-5:14));
+  if(phase==='play'&&R&&R.y<MID){ const f=1-raidT/BREATH; ctx.fillStyle=f<.3?'#f0412b':'#14163a'; ctx.fillRect(X(0),Y(MID)-(flip?-3:6),W*k*f,3); }
+  const pawn=(o,r,c,ring,txt)=>{ ctx.beginPath(); ctx.arc(X(o.x),Y(o.y),r*k*1.25,0,Math.PI*2); ctx.fillStyle=c; ctx.fill(); ctx.lineWidth=3; ctx.strokeStyle='#14163a'; ctx.stroke();
+    if(ring){ ctx.beginPath(); ctx.arc(X(o.x),Y(o.y),r*k*1.25+6,0,Math.PI*2); ctx.strokeStyle='#ffc929'; ctx.lineWidth=3; ctx.stroke(); }
+    if(txt){ ctx.fillStyle='#fff'; ctx.font=`800 ${Math.round(r*k*1.1)}px 'Figtree',sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,X(o.x),Y(o.y)+1); ctx.textBaseline='alphabetic'; } };
+  D.forEach(d=>{ pawn(d,DR,d.tag?'#9aa0c8':TEAM[d.team],d.cap,d.tag?'✕':''); });
+  if(R) pawn(R,RR,TEAM[R.team],!R.bot,'R');
+  if(joy){ ctx.beginPath(); ctx.arc(joy.ox-cv.getBoundingClientRect().left+0,joy.oy-cv.getBoundingClientRect().top,40,0,Math.PI*2); ctx.strokeStyle='rgba(20,22,58,.3)'; ctx.lineWidth=3; ctx.stroke(); }
+  if(banner){ const t=(performance.now()-banner.t)/1100; if(t<1&&banner.text){ ctx.save(); ctx.globalAlpha=t>.75?(1-t)/.25:1; ctx.font="800 44px 'Bricolage Grotesque','Arial Black',sans-serif"; ctx.textAlign='center'; ctx.lineWidth=7; ctx.strokeStyle='#14163a'; ctx.strokeText(banner.text,w/2,h*.47); ctx.fillStyle='#ffc929'; ctx.fillText(banner.text,w/2,h*.47); ctx.restore(); } } }
+function loop(now){ const dt=Math.min(.04,(now-last)/1000); last=now; if(phase==='play') update(dt); draw(); raf=requestAnimationFrame(loop); }
+cv.addEventListener('pointerdown',e=>{ if(phase!=='play'&&phase!=='ready') return; joy={ox:e.clientX,oy:e.clientY,x:e.clientX,y:e.clientY}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove',e=>{ if(joy){ joy.x=e.clientX; joy.y=e.clientY; } });
+const rel=()=>{ joy=null; }; cv.addEventListener('pointerup',rel); cv.addEventListener('pointercancel',rel);
+function finish(){ phase='idle'; R=null; D=[]; hud(); const [a,b]=pts, nA=$('nA').textContent, nB=$('nB').textContent;
+  const t=a===b?'Match drawn!':mode==='cpu'?(a>b?'You win!':'Bot team wins'):`${a>b?nA:nB} wins!`; status(t);
+  if(mode==='cpu'&&a>b){ const s=G9.load('raid-wins',{}); s[level]=(s[level]||0)+1; G9.save('raid-wins',s); }
+  setTimeout(()=>G9.over({tag:'Final whistle',title:t,sub:mode==='cpu'?`${level} · vs bot team`:'2 players · raid vs bots',stats:[[nA,a],[nB,b]],retry:'Play again',onRetry:()=>start(level,mode),onMenu:menu}),700); }
+function start(lv,md){ level=lv; mode=md; pts=[0,0]; alive=[5,5]; raidNo=0;
+  $('nA').textContent=md==='cpu'?'You':'Player 1'; $('nB').textContent=md==='cpu'?'Bot team':'Player 2';
+  $('tB').style.setProperty('--tc',md==='cpu'?TEAM[1]:'#2f5bff'); beginRaid(); }
+function menu(){ phase='idle'; G9.menu({id:'raid',title:'Raid Line',code:'G-02',hook:'One breath. Tag them. Get back over the line.',
+  how:'<b>Raiding:</b> drag anywhere to run. Cross the <b>baulk line</b>, tag defenders, then get back over the middle line before your breath runs out. Two defenders touching you at once = tackled. Cross the <b>bonus line</b> for +1. <b>Defending:</b> drag your ringed captain. When the captain closes in, the team rushes.',
+  modes:[{v:'cpu',t:'vs Bot team'},{v:'two',t:'2 players'}],levels:['Easy','Normal','Hard'],
+  best:lv=>{ const w=G9.load('raid-wins',{})[lv]; return w?`Wins vs ${lv} bots: ${w}`:''; },onStart:(lv,md)=>start(lv,md)}); }
+hud(); last=performance.now(); raf=requestAnimationFrame(loop); menu();
+</script>
+</body>
+</html>

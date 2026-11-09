@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Striker Club · Gametro9</title>
+<meta name="theme-color" content="#14163a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--ink:#14163a;--g9-dim:#565a7e}
+html,body{height:100%;margin:0}
+body{background:#efe6d6;color:var(--ink);font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow:hidden}
+main{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;min-height:0;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:440px}
+.pl{display:flex;align-items:center;gap:8px;background:#fff;border:2.5px solid #d9cdb6;border-radius:14px;padding:6px 10px;transition:.15s}
+.pl.on{border-color:var(--ink);box-shadow:3px 3px 0 var(--ink);transform:translate(-1px,-1px)}
+.pl i{width:20px;height:20px;border-radius:50%;border:2.5px solid var(--ink);flex:none}
+.pl b{display:block;font-size:14.5px}.pl small{font:700 11px 'Overpass Mono',monospace;color:#565a7e}
+.pl .pt{margin-left:auto;font:800 24px 'Bricolage Grotesque',sans-serif}
+.status{font-weight:800;font-size:15px;min-height:20px;text-align:center}
+.wrap{position:relative;width:min(100%,440px,calc(100vh - 270px));aspect-ratio:1}
+canvas{width:100%;height:100%;display:block;touch-action:none;border-radius:16px;box-shadow:5px 5px 0 var(--ink)}
+.slide{display:flex;align-items:center;gap:10px;width:100%;max-width:440px}
+.slide label{font:700 11.5px 'Overpass Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#565a7e;white-space:nowrap}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:12px;border-radius:99px;background:#d9cdb6;border:2px solid var(--ink);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;background:#ffc929;border:3px solid var(--ink);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#ffc929;border:3px solid var(--ink);cursor:pointer}
+input[type=range]:disabled{opacity:.4}
+.rule{max-width:440px;text-align:center;font-size:12.5px;color:#6b5f49;font-weight:600;margin:0}
+</style>
+</head>
+<body>
+<main>
+  <div class="score"><div class="pl" id="pA"><i style="background:#fff"></i><div><b id="nA">You</b><small id="lA">6 left</small></div><span class="pt" id="sA">0</span></div><div class="pl" id="pB"><i style="background:#14163a"></i><div><b id="nB">Rival</b><small id="lB">6 left</small></div><span class="pt" id="sB">0</span></div></div>
+  <div class="status" id="status" aria-live="polite"></div>
+  <div class="wrap"><canvas id="cv" aria-label="Carrom board"></canvas></div>
+  <div class="slide"><label for="pos">Move striker</label><input type="range" id="pos" min="0" max="1000" value="500"></div>
+  <p class="rule">Slide the striker, then <b>pull back</b> on the board and let go. Your coins = 1 point, the pink <b>Club coin</b> = 3. Pocket the striker and you lose a point.</p>
+</main>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'B-03',line:'Board & Cards line',color:'#8a3ffc'});
+const $=id=>document.getElementById(id), cv=$('cv');
+const POCK=[[48,48],[952,48],[48,952],[952,952]], PR=50, RC=24, RS=32, BASE=[820,180], XMIN=200, XMAX=800, DT=1/200;
+let bodies=[], shooter=0, score=[0,0], mode='cpu', level='Normal', phase='idle', aim=null, potted=[], simT=0, raf=0, view=null;
+let S=null; S=G9.canvas(cv,()=>{ if(S) draw(); });
+const own=s=>s===0?'w':'b';
+function setup(){ bodies=[{k:'s',x:500,y:BASE[0],vx:0,vy:0,r:RS,m:2.2,in:false}]; bodies.push({k:'q',x:500,y:500,vx:0,vy:0,r:RC,m:1,in:false});
+  for(let i=0;i<6;i++){ const a=i/6*Math.PI*2; bodies.push({k:i%2?'b':'w',x:500+Math.cos(a)*50,y:500+Math.sin(a)*50,vx:0,vy:0,r:RC,m:1,in:false}); }
+  for(let i=0;i<6;i++){ const a=(i+.5)/6*Math.PI*2; bodies.push({k:i%2?'w':'b',x:500+Math.cos(a)*100,y:500+Math.sin(a)*100,vx:0,vy:0,r:RC,m:1,in:false}); } }
+function step(B,dt){ for(const b of B){ if(b.in) continue; b.x+=b.vx*dt; b.y+=b.vy*dt;
+    const sp=Math.hypot(b.vx,b.vy); if(sp>0){ const ns=Math.max(0,sp*(1-.55*dt)-260*dt); b.vx*=ns/sp; b.vy*=ns/sp; }
+    for(const [px,py] of POCK) if(Math.hypot(b.x-px,b.y-py)<PR-4){ b.in=true; b.vx=b.vy=0; }
+    if(b.in) continue;
+    if(b.x<b.r){ b.x=b.r; b.vx=-b.vx*.72; } if(b.x>1000-b.r){ b.x=1000-b.r; b.vx=-b.vx*.72; }
+    if(b.y<b.r){ b.y=b.r; b.vy=-b.vy*.72; } if(b.y>1000-b.r){ b.y=1000-b.r; b.vy=-b.vy*.72; } }
+  for(let i=0;i<B.length;i++){ const a=B[i]; if(a.in) continue; for(let j=i+1;j<B.length;j++){ const b=B[j]; if(b.in) continue;
+    const dx=b.x-a.x, dy=b.y-a.y, rr=a.r+b.r; if(Math.abs(dx)>rr||Math.abs(dy)>rr) continue; const d=Math.hypot(dx,dy); if(d>=rr||d===0) continue;
+    const nx=dx/d, ny=dy/d, ov=rr-d, im=1/a.m+1/b.m; a.x-=nx*ov*(1/a.m)/im; a.y-=ny*ov*(1/a.m)/im; b.x+=nx*ov*(1/b.m)/im; b.y+=ny*ov*(1/b.m)/im;
+    const vr=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny; if(vr>0){ const J=1.9*vr/im; a.vx-=J/a.m*nx; a.vy-=J/a.m*ny; b.vx+=J/b.m*nx; b.vy+=J/b.m*ny; } } } }
+const moving=B=>B.some(b=>!b.in&&(Math.abs(b.vx)>3||Math.abs(b.vy)>3));
+function simulate(x,ang,spd,sh){ const B=bodies.map(b=>({...b})); B[0].x=x; B[0].y=BASE[sh]; B[0].in=false; B[0].vx=Math.cos(ang)*spd; B[0].vy=Math.sin(ang)*spd;
+  const before=new Set(B.map((b,i)=>b.in?i:-1)); for(let t=0;t<7&&moving(B);t+=DT) step(B,DT);
+  return B.map((b,i)=>b.in&&!before.has(i)?b.k:null).filter(Boolean); }
+function evalPot(list,sh){ let s=0; for(const k of list){ if(k==='s') s-=2.2; else if(k==='q') s+=3; else if(k===own(sh)) s+=1.2; else s-=1; } return s; }
+function strikerOK(x,sh){ return bodies.every((b,i)=>i===0||b.in||Math.hypot(b.x-x,b.y-BASE[sh])>RC+RS+2); }
+function counts(){ const n={w:0,b:0,q:0}; bodies.forEach(b=>{ if(!b.in&&b.k!=='s') n[b.k]++; }); return n; }
+function hud(){ const n=counts(); $('sA').textContent=score[0]; $('sB').textContent=score[1]; $('lA').textContent=`${n.w} white left`; $('lB').textContent=`${n.b} black left`;
+  $('pA').classList.toggle('on',phase!=='idle'&&shooter===0); $('pB').classList.toggle('on',phase!=='idle'&&shooter===1); }
+function status(t){ $('status').textContent=t; }
+const isBot=()=>mode==='cpu'&&shooter===1;
+function draw(){ if(!S||!S.w) return; const {ctx,w}=S, m=w*.055, k=(w-2*m)/1000; view={m,k};
+  ctx.fillStyle='#14163a'; ctx.fillRect(0,0,w,w); ctx.fillStyle='#7a4a24'; ctx.fillRect(4,4,w-8,w-8);
+  ctx.fillStyle='#f3d9a4'; ctx.fillRect(m,m,w-2*m,w-2*m);
+  const X=x=>m+x*k; ctx.save();
+  ctx.strokeStyle='rgba(20,22,58,.55)'; ctx.lineWidth=1.5;
+  for(const y of BASE){ ctx.beginPath(); ctx.moveTo(X(XMIN),X(y-RS-6)); ctx.lineTo(X(XMAX),X(y-RS-6)); ctx.moveTo(X(XMIN),X(y+RS+6)); ctx.lineTo(X(XMAX),X(y+RS+6)); ctx.stroke();
+    for(const x of [XMIN,XMAX]){ ctx.beginPath(); ctx.arc(X(x),X(y),(RS+6)*k,0,Math.PI*2); ctx.stroke(); } }
+  ctx.beginPath(); ctx.arc(X(500),X(500),120*k,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(X(500),X(500),30*k,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle='rgba(240,65,43,.5)'; for(const [px,py] of POCK){ ctx.beginPath(); ctx.moveTo(X(px+(px<500?60:-60)),X(py+(py<500?60:-60))); ctx.lineTo(X(px+(px<500?190:-190)),X(py+(py<500?190:-190))); ctx.stroke(); }
+  for(const [px,py] of POCK){ ctx.fillStyle='#14163a'; ctx.beginPath(); ctx.arc(X(px),X(py),PR*k,0,Math.PI*2); ctx.fill(); }
+  ctx.restore();
+  if(aim&&phase==='aim'){ const s=bodies[0]; ctx.save(); ctx.setLineDash([6,6]); ctx.strokeStyle='rgba(20,22,58,.6)'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(X(s.x),X(s.y)); ctx.lineTo(X(s.x+Math.cos(aim.ang)*700),X(s.y+Math.sin(aim.ang)*700)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle=aim.p>.75?'#f0412b':'#13a05c'; ctx.lineWidth=6; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(X(s.x),X(s.y)); ctx.lineTo(X(s.x-Math.cos(aim.ang)*(50+aim.p*180)),X(s.y-Math.sin(aim.ang)*(50+aim.p*180))); ctx.stroke(); ctx.restore(); }
+  for(const b of bodies){ if(b.in) continue; const r=b.r*k; ctx.beginPath(); ctx.arc(X(b.x),X(b.y),r,0,Math.PI*2);
+    ctx.fillStyle=b.k==='w'?'#fffaf0':b.k==='b'?'#14163a':b.k==='q'?'#ff5fa2':'#ffc929'; ctx.fill(); ctx.lineWidth=Math.max(1.5,r*.14); ctx.strokeStyle=b.k==='b'?'#ffc929':'#14163a'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(X(b.x),X(b.y),r*.55,0,Math.PI*2); ctx.lineWidth=1; ctx.strokeStyle=b.k==='b'?'rgba(255,201,41,.5)':'rgba(20,22,58,.35)'; ctx.stroke();
+    if(b.k==='s'&&phase==='aim'&&!strikerOK(b.x,shooter)){ ctx.strokeStyle='#f0412b'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(X(b.x),X(b.y),r+4,0,Math.PI*2); ctx.stroke(); } } }
+function placeStriker(x){ const s=bodies[0]; s.in=false; s.vx=s.vy=0; s.x=G9.clamp(x,XMIN,XMAX); s.y=BASE[shooter]; draw(); }
+function newShot(){ phase='aim'; aim=null; potted=[]; const n=counts(); hud();
+  if(!n.w&&!n.b) return finish();
+  if(isBot()){ $('pos').disabled=true; status('Rival is lining up a shot…'); placeStriker(500); setTimeout(botShot,450); return; }
+  let x=500; if(!strikerOK(x,shooter)) for(let d=20;d<300;d+=20){ if(strikerOK(500+d,shooter)){x=500+d;break;} if(strikerOK(500-d,shooter)){x=500-d;break;} }
+  $('pos').disabled=false; $('pos').value=Math.round((x-XMIN)/(XMAX-XMIN)*1000); placeStriker(x);
+  status(mode==='cpu'?'Your shot: slide, then pull back and release':`${shooter?$('nB').textContent:$('nA').textContent}: ${shooter?'top':'bottom'} baseline`); }
+function shoot(ang,spd){ const s=bodies[0]; s.vx=Math.cos(ang)*spd; s.vy=Math.sin(ang)*spd; phase='move'; aim=null; $('pos').disabled=true; G9.vibrate(15);
+  const before=new Set(bodies.map((b,i)=>b.in?i:-1)); simT=0; let last=performance.now();
+  const loop=now=>{ const el=Math.min(.05,(now-last)/1000); last=now; for(let t=0;t<el;t+=DT){ step(bodies,DT); simT+=DT; } draw();
+    if(moving(bodies)&&simT<9) raf=requestAnimationFrame(loop);
+    else { bodies.forEach(b=>{ b.vx=b.vy=0; }); potted=bodies.map((b,i)=>b.in&&!before.has(i)?b.k:null).filter(Boolean); resolve(); } };
+  raf=requestAnimationFrame(loop); }
+function resolve(){ const me=shooter, mine=own(me); let foul=false, notes=[];
+  for(const k of potted){ if(k==='s'){ foul=true; } else if(k==='q'){ score[me]+=3; notes.push('Club coin! +3'); } else if(k==='w'){ score[0]++; } else score[1]++; }
+  const ownN=potted.filter(k=>k===mine).length, oppN=potted.filter(k=>k===own(1-me)).length;
+  if(ownN) notes.push(`+${ownN}`); if(oppN) notes.push(`${oppN} to opponent`);
+  if(foul){ score[me]=Math.max(0,score[me]-1); notes.push('Striker pocketed: −1'); }
+  const keep=!foul&&(ownN>0||potted.includes('q')); hud(); if(potted.length) G9.vibrate(25);
+  const who=mode==='cpu'?(me?'Rival':'You'):(me?$('nB').textContent:$('nA').textContent);
+  status(notes.length?`${who}: ${notes.join(' · ')}${keep&&counts().w+counts().b?' · shoot again':''}`:`${who} missed`);
+  if(!keep) shooter=1-shooter; setTimeout(newShot,keep||!notes.length?900:1300); }
+function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/0.5; }
+function botShot(){ const me=1, xs=[]; for(let x=XMIN+20;x<=XMAX-20;x+=60) if(strikerOK(x,me)) xs.push(x);
+  const targets=bodies.filter(b=>!b.in&&(b.k===own(me)||b.k==='q')); const cands=[];
+  for(const x of xs){ const sx=x, sy=BASE[me]; for(const c of targets) for(const [px,py] of POCK){
+    const ux=c.x-px, uy=c.y-py, ul=Math.hypot(ux,uy), gx=c.x+ux/ul*(RC+RS), gy=c.y+uy/ul*(RC+RS), dx=gx-sx, dy=gy-sy, dl=Math.hypot(dx,dy);
+    const cut=(dx*-ux+dy*-uy)/(dl*ul); if(cut<.3) continue; cands.push({x,ang:Math.atan2(dy,dx),spd:G9.clamp(650+dl*1.15+ul*1.5,650,2900),cut}); } }
+  cands.sort((a,b)=>b.cut-a.cut); const N={Easy:5,Normal:16,Hard:40}[level]; const pool=cands.slice(0,N);
+  for(let i=0;i<4;i++){ const x=G9.pick(xs.length?xs:[500]); pool.push({x,ang:Math.PI/2+G9.rand(-.9,.9),spd:G9.rand(1200,2600),cut:0}); }
+  let best=null,bs=-1e9; for(const c of pool){ const s=evalPot(simulate(c.x,c.ang,c.spd,me),me)+c.cut*.2+Math.random()*.05; if(s>bs){ bs=s; best=c; } }
+  const noise={Easy:.06,Normal:.022,Hard:.008}[level]; const ang=best.ang+gauss()*noise, spd=best.spd*(1+gauss()*noise);
+  let x0=500; const slide=()=>{ x0+=(best.x-x0)*.25; placeStriker(x0); if(Math.abs(best.x-x0)>2) return requestAnimationFrame(slide);
+    placeStriker(best.x); aim={ang,p:G9.clamp((spd-400)/2600,0,1)}; draw(); setTimeout(()=>shoot(ang,spd),500); };
+  slide(); }
+$('pos').addEventListener('input',()=>{ if(phase!=='aim'||isBot()) return; placeStriker(XMIN+(+$('pos').value)/1000*(XMAX-XMIN)); });
+let drag=null; const toBoard=e=>{ const r=cv.getBoundingClientRect(); return [((e.clientX-r.left)-view.m)/view.k,((e.clientY-r.top)-view.m)/view.k]; };
+cv.addEventListener('pointerdown',e=>{ if(phase!=='aim'||isBot()||!view) return; drag=toBoard(e); cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove',e=>{ if(!drag) return; const [x,y]=toBoard(e), dx=drag[0]-x, dy=drag[1]-y, l=Math.hypot(dx,dy); aim=l<14?null:{ang:Math.atan2(dy,dx),p:G9.clamp(l/340,0,1)}; draw(); });
+const up=()=>{ if(!drag) return; drag=null; if(!aim||aim.p<.05){ aim=null; draw(); return; }
+  if(!strikerOK(bodies[0].x,shooter)){ status('Striker is touching a coin. Slide it clear first'); aim=null; draw(); return; }
+  shoot(aim.ang,420+aim.p*2600); };
+cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',()=>{ drag=null; aim=null; draw(); });
+function finish(){ phase='idle'; hud(); const [a,b]=score, nA=$('nA').textContent, nB=$('nB').textContent;
+  const t=a===b?'Draw!':(mode==='cpu'?(a>b?'You win!':'Rival wins'):`${a>b?nA:nB} wins!`); status(t);
+  if(mode==='cpu'&&a>b){ const w=G9.load('striker-wins',{}); w[level]=(w[level]||0)+1; G9.save('striker-wins',w); }
+  setTimeout(()=>G9.over({tag:'Board cleared',title:t,sub:mode==='cpu'?`${level} · vs bot`:'2 players on one phone',stats:[[nA,a],[nB,b]],retry:'Play again',onRetry:()=>start(level,mode),onMenu:menu}),800); }
+function start(lv,md){ cancelAnimationFrame(raf); level=lv; mode=md; score=[0,0]; shooter=0; setup();
+  $('nA').textContent=md==='cpu'?'You':'Player 1'; $('nB').textContent=md==='cpu'?'Rival':'Player 2'; newShot(); }
+function menu(){ G9.menu({id:'striker',title:'Striker Club',code:'B-03',hook:'Flick, rebound, pocket. Your club, your rules.',
+  how:'You shoot from the <b>bottom</b> baseline with the <b>white</b> coins. Slide the striker, then <b>pull back</b> on the board like a slingshot and release. Pocket your colour to shoot again. The pink <b>Club coin</b> is worth 3. Most points when the board is clear wins.',
+  modes:[{v:'cpu',t:'vs Bot'},{v:'two',t:'2 players'}],levels:['Easy','Normal','Hard'],
+  best:lv=>{ const w=G9.load('striker-wins',{})[lv]; return w?`Wins vs ${lv} bot: ${w}`:''; },onStart:(lv,md)=>start(lv,md)}); }
+setup(); hud(); draw(); menu();
+</script>
+</body>
+</html>

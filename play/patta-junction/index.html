@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patta Junction · Gametro9</title>
+<meta name="theme-color" content="#14163a">
+<link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+<style>
+:root{--ink:#14163a;--g9-dim:#a4a9d6}
+html,body{height:100%;margin:0}
+body{background:#2a1d5c;background:radial-gradient(120% 80% at 50% 40%,#3b2a7a,#1a1240);color:#fff;font-family:'Figtree',system-ui,sans-serif;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;overflow:hidden}
+main{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0;padding:0 max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));max-width:560px;width:100%;margin:0 auto;box-sizing:border-box}
+.opps{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.op{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);border-radius:14px;padding:6px 10px;min-width:96px;transition:.15s}
+.op.on{background:#fff;color:var(--ink);border-color:#14163a;box-shadow:3px 3px 0 #ffc929}
+.op .mini{width:20px;height:28px;border-radius:5px;background:#14163a;border:2px solid #ffc929;flex:none}
+.op b{display:block;font-size:14px}.op small{font:700 11px 'Overpass Mono',monospace;letter-spacing:.06em;opacity:.8}
+.op .last{color:#ffc929;font-weight:800}.op.on .last{color:#f0412b}
+.table{flex:1;min-height:150px;display:flex;align-items:center;justify-content:center;gap:22px;position:relative}
+.dir{position:absolute;top:6px;left:50%;transform:translateX(-50%);font:700 12px 'Overpass Mono',monospace;letter-spacing:.1em;color:#c9c2ff}
+.cur{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font:800 14px 'Figtree';background:rgba(0,0,0,.25);padding:4px 12px;border-radius:99px}
+.cur i{width:14px;height:14px;border-radius:50%;border:2px solid #fff}
+.msg{text-align:center;font-weight:800;font-size:16px;min-height:22px}
+.handwrap{background:rgba(0,0,0,.22);border-radius:18px;padding:8px 8px 10px}
+.hlab{display:flex;justify-content:space-between;align-items:center;padding:0 4px 6px;font-size:13.5px}
+.hlab b{font:700 12px 'Overpass Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#c9c2ff}
+.pass{border:2.5px solid #14163a;background:#ffc929;color:#14163a;font:800 14px 'Figtree';border-radius:99px;padding:5px 14px;box-shadow:2px 2px 0 #14163a;cursor:pointer}
+.hand{display:flex;overflow-x:auto;padding:14px 6px 4px;min-height:100px;scrollbar-width:none}
+.hand::-webkit-scrollbar{display:none}
+.hand.tight .card+.card{margin-left:-22px}
+.card{--cc:#888;position:relative;flex:none;width:62px;height:90px;border-radius:12px;border:2.5px solid #14163a;background:var(--cc);box-shadow:3px 3px 0 #14163a;color:#14163a;cursor:pointer;padding:0;font-family:'Bricolage Grotesque','Arial Black',sans-serif;transition:transform .15s,opacity .15s}
+.card .o{position:absolute;inset:9px 7px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:26px;color:var(--cc);transform:rotate(-14deg)}
+.card .k{position:absolute;top:3px;left:5px;font:800 12px 'Figtree';color:#fff;text-shadow:0 1px 0 #14163a}
+.card .k2{top:auto;left:auto;bottom:3px;right:5px;transform:rotate(180deg)}
+.card.w{background:conic-gradient(#f0412b 0 25%,#2f5bff 0 50%,#13a05c 0 75%,#e89a00 0)}
+.card.w .o{color:#14163a;font-size:22px}
+.card .t{position:absolute;bottom:-1px;left:0;right:0;font:800 8.5px 'Figtree';letter-spacing:.04em;text-transform:uppercase;color:#14163a;text-align:center;display:none}
+.hand .card.ok{transform:translateY(-10px)}
+.hand.mine .card:not(.ok){opacity:.5}
+.hand .card.new{box-shadow:0 0 0 3px #ffc929,3px 3px 0 #14163a}
+.card.back{background:#14163a;border-color:#ffc929;box-shadow:3px 3px 0 #000}
+.card.back .o{background:none;border:2.5px solid #ffc929;color:#ffc929;font-size:20px;transform:none}
+.table .card{width:78px;height:112px}
+.table .card .o{font-size:32px}
+.pile.can{animation:nud 1s ease-in-out infinite}
+@keyframes nud{50%{transform:translateY(-5px)}}
+.played{animation:pl .3s ease-out}
+@keyframes pl{from{transform:scale(1.25) rotate(8deg);opacity:.4}to{transform:none;opacity:1}}
+.sheet{position:fixed;inset:0;z-index:40;background:rgba(8,10,30,.75);display:flex;align-items:center;justify-content:center;padding:20px}
+.sheet[hidden]{display:none}
+.sheet .box{background:#fff;color:#14163a;border:3px solid #14163a;box-shadow:6px 6px 0 #ffc929;border-radius:20px;padding:18px;width:100%;max-width:340px;text-align:center}
+.sheet h3{margin:0 0 4px;font:800 24px 'Bricolage Grotesque',sans-serif}
+.sheet p{margin:0 0 14px;color:#565a7e;font-weight:600}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cols button,.who button,.big{border:2.5px solid #14163a;border-radius:14px;padding:14px 8px;font:800 16px 'Figtree';cursor:pointer;box-shadow:3px 3px 0 #14163a;color:#fff}
+.who{display:grid;gap:8px}.who button{background:#fff;color:#14163a;text-align:left;padding:12px 14px}
+.big{width:100%;background:#f0412b}
+.shake{animation:sh .3s}
+@keyframes sh{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.played,.pile.can{animation:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="opps" id="opps"></div>
+  <div class="table">
+    <div class="dir" id="dir"></div>
+    <button class="card back pile" id="pile" aria-label="Draw a card"><span class="o">G9</span></button>
+    <div id="top"></div>
+    <div class="cur" id="cur"></div>
+  </div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="handwrap"><div class="hlab"><b id="who">Your hand</b><button class="pass" id="pass" hidden>Pass</button></div><div class="hand" id="hand"></div></div>
+</main>
+<div class="sheet" id="sheet" hidden><div class="box" id="sbox"></div></div>
+<script src="../g9kit.js"></script>
+<script>
+G9.bar({code:'B-02',line:'Board & Cards line',color:'#8a3ffc'});
+const $=id=>document.getElementById(id);
+const COL={r:'#f0412b',b:'#2f5bff',g:'#13a05c',y:'#e89a00'}, CN={r:'Red',b:'Blue',g:'Green',y:'Gold'};
+const NAME={skip:'Express',rev:'U-turn',plus2:'Rush hour',wild:'Interchange',swap:'Platform swap'};
+const GLY={skip:'»',rev:'↺',plus2:'+2',wild:'◎',swap:'⇄'};
+const BOTN=['Meera','Kabir','Zoya'];
+let P=[],turn=0,dir=1,topc=null,cur='r',pile=[],disc=[],mode='b1',level='Normal',over=true,busy=false,drew=-1,wins=[],viewer=0;
+const shuffle=a=>{ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function deck(){ const d=[]; for(const c of 'rbgy'){ d.push({c,v:0}); for(let v=1;v<=9;v++) d.push({c,v},{c,v}); for(const v of ['skip','rev','plus2']) d.push({c,v},{c,v}); }
+  for(let i=0;i<4;i++) d.push({c:null,v:'wild'}); for(let i=0;i<2;i++) d.push({c:null,v:'swap'}); return shuffle(d); }
+function draw1(p){ if(!pile.length){ pile=shuffle(disc); disc=[]; } if(!pile.length) return null; const c=pile.pop(); P[p].hand.push(c); return c; }
+const canPlay=c=>c.c===null||c.c===cur||c.v===topc.v;
+const nxt=(i,s=1)=>((i+dir*s)%P.length+P.length)%P.length;
+const humans=()=>P.filter(p=>!p.bot).length;
+const pts=c=>typeof c.v==='number'?c.v:(c.c===null?50:20);
+function cardHTML(c,cls='',attrs=''){ const w=c.c===null; const g=typeof c.v==='number'?c.v:GLY[c.v];
+  return `<button class="card ${w?'w':''} ${cls}" style="--cc:${w?'#14163a':COL[c.c]}" ${attrs} aria-label="${w?NAME[c.v]:CN[c.c]+' '+(typeof c.v==='number'?c.v:NAME[c.v])}"><span class="k">${g}</span><span class="o">${g}</span><span class="k k2">${g}</span></button>`; }
+function render(){ const me=P[viewer];
+  $('opps').innerHTML=P.map((p,i)=>i===viewer&&humans()===1?'':`<div class="op ${i===turn&&!over?'on':''}"><span class="mini"></span><div><b>${G9.esc(p.name)}</b><small>${p.hand.length} card${p.hand.length===1?'':'s'}${p.hand.length===1?' · <span class="last">LAST!</span>':''}</small></div></div>`).join('');
+  $('top').innerHTML=topc?cardHTML(topc,'played','tabindex="-1"'):'';
+  $('cur').innerHTML=topc?`<i style="background:${COL[cur]}"></i>${CN[cur]} line`:'';
+  $('dir').textContent=dir===1?'DIRECTION ⟳':'DIRECTION ⟲';
+  const myTurn=!over&&!busy&&turn===viewer&&!P[turn].bot;
+  $('pile').classList.toggle('can',myTurn&&drew<0&&!me.hand.some(canPlay));
+  $('who').textContent=humans()>1?`${me.name}'s hand`:'Your hand';
+  const h=$('hand'); h.classList.toggle('mine',myTurn); h.classList.toggle('tight',me.hand.length>6);
+  h.innerHTML=me.hand.map((c,i)=>cardHTML(c,(myTurn&&canPlay(c)?'ok':'')+(i===drew?' new':''),`data-i="${i}"`)).join('');
+  $('pass').hidden=!(myTurn&&drew>=0); }
+function msg(t){ $('msg').textContent=t; }
+function sheet(html){ $('sbox').innerHTML=html; $('sheet').hidden=false; }
+function unsheet(){ $('sheet').hidden=true; }
+function start(lv,md){ level=lv; mode=md; const n={b1:2,b3:4,p2:2,p4:4}[md]; const bots=md[0]==='b';
+  P=Array.from({length:n},(_,i)=>({name:bots?(i?BOTN[i-1]:'You'):'Player '+(i+1),bot:bots&&i>0,hand:[]}));
+  if(wins.length!==n||wins.mode!==md){ wins=Array(n).fill(0); wins.mode=md; }
+  pile=deck(); disc=[]; for(let k=0;k<7;k++) P.forEach((_,i)=>draw1(i));
+  let t; do{ t=pile.pop(); if(typeof t.v!=='number'){ pile.unshift(t); t=null; } }while(!t); topc=t; cur=t.c;
+  dir=1; over=false; busy=false; drew=-1; viewer=0; turn=Math.floor(Math.random()*n); msg(''); render(); beginTurn(true); }
+function beginTurn(first){ drew=-1; const p=P[turn];
+  if(p.bot){ viewer=0; busy=true; render(); msg(`${p.name} is thinking…`); setTimeout(botTurn,first?900:750); return; }
+  busy=false;
+  if(humans()>1){ viewer=turn; render(); $('hand').innerHTML=''; sheet(`<h3>Pass to ${G9.esc(p.name)}</h3><p>Others look away. Your cards are hidden until you tap.</p><button class="big" id="ready">Show my cards</button>`);
+    $('ready').onclick=()=>{ unsheet(); render(); msg('Your turn: match the colour or the symbol'); }; return; }
+  viewer=0; render(); msg(first?'You start. Match the colour or the symbol':'Your turn'); }
+function chooseColour(cb){ sheet(`<h3>Interchange</h3><p>Pick the next line colour.</p><div class="cols">${'rbgy'.split('').map(k=>`<button data-c="${k}" style="background:${COL[k]}">${CN[k]}</button>`).join('')}</div>`);
+  $('sbox').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{ unsheet(); cb(b.dataset.c); }); }
+function chooseTarget(p,cb){ const others=P.map((q,i)=>i).filter(i=>i!==p); if(others.length===1) return cb(others[0]);
+  sheet(`<h3>Platform swap</h3><p>Swap your whole hand with…</p><div class="who">${others.map(i=>`<button data-t="${i}">${G9.esc(P[i].name)} · ${P[i].hand.length} card${P[i].hand.length===1?'':'s'}</button>`).join('')}</div>`);
+  $('sbox').querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{ unsheet(); cb(+b.dataset.t); }); }
+function humanPlay(i){ const c=P[turn].hand[i]; if(!canPlay(c)){ const el=$('hand').children[i]; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); msg(`Match ${CN[cur]} or ${typeof topc.v==='number'?topc.v:NAME[topc.v]}`); return; }
+  if(c.c!==null) return playCard(turn,i);
+  const p=turn; busy=true; render();
+  chooseColour(col=>{ if(c.v==='swap'&&P[p].hand.length>1) chooseTarget(p,t=>playCard(p,i,col,t)); else playCard(p,i,col); }); }
+function playCard(p,i,col,tgt){ busy=true; const card=P[p].hand.splice(i,1)[0]; disc.push(topc); topc=card; if(card.c) cur=card.c; else cur=col; G9.vibrate(12);
+  const who=P[p].name;
+  if(!P[p].hand.length){ render(); return endRound(p); }
+  let skip=0, note=`${who} played ${card.c?CN[card.c]+' ':''}${typeof card.v==='number'?card.v:NAME[card.v]}`;
+  if(card.v==='skip'){ skip=1; note=`Express! ${P[nxt(p)].name} is skipped`; }
+  if(card.v==='rev'){ dir*=-1; if(P.length===2) skip=1; note=P.length===2?`U-turn! ${who} goes again`:'U-turn! Direction reversed'; }
+  if(card.v==='plus2'){ const t=nxt(p); draw1(t); draw1(t); skip=1; note=`Rush hour! ${P[t].name} draws 2 and waits`; }
+  if(card.v==='wild') note=`Interchange → ${CN[cur]} line`;
+  if(card.v==='swap'){ if(tgt==null) tgt=nxt(p); [P[p].hand,P[tgt].hand]=[P[tgt].hand,P[p].hand]; note=`Platform swap! ${who} ⇄ ${P[tgt].name} · ${CN[cur]} line`; }
+  msg(note); render(); setTimeout(()=>{ turn=nxt(p,1+skip); beginTurn(); },P[p].bot?650:500); }
+function botTurn(){ if(over) return; const p=turn, h=P[p].hand; const opts=h.map((c,i)=>i).filter(i=>canPlay(h[i]));
+  if(!opts.length){ const c=draw1(p); msg(`${P[p].name} draws a card`); render();
+    if(c&&canPlay(c)&&(level!=='Easy'||Math.random()<.7)) setTimeout(()=>botPlay(p,h.length-1),650);
+    else setTimeout(()=>{ turn=nxt(p); beginTurn(); },650); return; }
+  botPlay(p,pickCard(p,opts)); }
+function colourCounts(h,skipI){ const n={r:0,b:0,g:0,y:0}; h.forEach((c,i)=>{ if(i!==skipI&&c.c) n[c.c]++; }); return n; }
+function pickCard(p,opts){ const h=P[p].hand; if(level==='Easy') return G9.pick(opts);
+  const nextN=P[nxt(p)].hand.length, minOther=Math.min(...P.filter((_,i)=>i!==p).map(q=>q.hand.length)), cc=colourCounts(h);
+  let best=-1e9,bi=opts[0];
+  for(const i of opts){ const c=h[i]; let s;
+    if(typeof c.v==='number') s=10+c.v*.3; else if(c.v==='wild') s=2; else if(c.v==='swap') s=(h.length-1-minOther)>1?30:-20; else s=12;
+    if(['skip','plus2','rev'].includes(c.v)&&nextN<=2) s+=level==='Hard'?18:8;
+    if(level==='Hard'&&c.c) s+=cc[c.c]*1.5;
+    s+=Math.random()*(level==='Hard'?1:4); if(s>best){ best=s; bi=i; } }
+  return bi; }
+function botPlay(p,i){ const h=P[p].hand, c=h[i]; let col, tgt;
+  if(c.c===null){ const cc=colourCounts(h,i); col=level==='Easy'?G9.pick('rbgy'.split('')):Object.keys(cc).sort((a,b)=>cc[b]-cc[a])[0];
+    if(c.v==='swap'){ const others=P.map((q,k)=>k).filter(k=>k!==p); tgt=level==='Easy'?G9.pick(others):others.sort((a,b)=>P[a].hand.length-P[b].hand.length)[0]; } }
+  playCard(p,i,col,tgt); }
+function endRound(w){ over=true; busy=false; wins[w]++; render(); const others=P.reduce((s,q,i)=>i===w?s:s+q.hand.reduce((a,c)=>a+pts(c),0),0);
+  const solo=humans()===1, t=solo?(w===0?'You win the round!':`${P[w].name} wins`):`${P[w].name} wins!`; msg(t); G9.vibrate([20,40,20]);
+  if(solo&&w===0){ const s=G9.load('patta-wins',{}); s[level]=(s[level]||0)+1; G9.save('patta-wins',s); }
+  setTimeout(()=>G9.over({tag:'Last stop reached',title:t,sub:solo?`${level} bots · ${P.length-1} rival${P.length>2?'s':''}`:`${P.length} players on one phone`,
+    stats:P.map((q,i)=>[q.name+' wins',wins[i]]).slice(0,4),note:`Points from cards left in other hands: ${others}`,retry:'Next round',onRetry:()=>start(level,mode),onMenu:menu}),900); }
+$('hand').addEventListener('click',e=>{ const b=e.target.closest('.card'); if(!b||over||busy||P[turn].bot||turn!==viewer) return; humanPlay(+b.dataset.i); });
+$('pile').onclick=()=>{ if(over||busy||P[turn].bot||turn!==viewer||drew>=0) return; const c=draw1(turn); if(!c) return;
+  drew=P[turn].hand.length-1; G9.vibrate(8);
+  if(P[turn].hand.some(canPlay)){ msg('Play a card, or pass'); render(); }
+  else { msg('No match. Turn passes'); render(); busy=true; setTimeout(()=>{ turn=nxt(turn); beginTurn(); },700); } };
+$('pass').onclick=()=>{ if(over||busy) return; busy=true; render(); turn=nxt(turn); beginTurn(); };
+function menu(){ G9.menu({id:'patta',title:'Patta Junction',code:'B-02',hook:'Match the line. Empty your hand first.',
+  how:'Play a card that matches the <b>colour</b> or <b>symbol</b> on top. Can\'t? Draw one. <b>»&nbsp;Express</b> skips the next player, <b>↺&nbsp;U-turn</b> reverses, <b>+2&nbsp;Rush hour</b> makes them draw 2, <b>◎&nbsp;Interchange</b> picks the colour, and <b>⇄&nbsp;Platform swap</b> swaps your whole hand with someone.',
+  modes:[{v:'b1',t:'vs 1 bot'},{v:'b3',t:'vs 3 bots'},{v:'p2',t:'2 players'},{v:'p4',t:'4 players'}],levels:['Easy','Normal','Hard'],
+  best:lv=>{ const w=G9.load('patta-wins',{})[lv]; return w?`Rounds won vs ${lv} bots: ${w}`:''; },onStart:(lv,md)=>start(lv,md)}); }
+P=[{name:'You',bot:false,hand:[]}]; render(); menu();
+</script>
+</body>
+</html>
